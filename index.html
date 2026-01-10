@@ -2,143 +2,228 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>NEOKey – CCL3 Project</title>
+    <title>NEOKey – Android Authenticator</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
+        /* Base */
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: #0f172a;
-            color: #e5e7eb;
             margin: 0;
             padding: 0;
-        }
-        main {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 3rem 1.5rem;
-        }
-        h1 {
-            font-size: 3rem;
-            color: #22c55e;
-            margin-bottom: 0.5rem;
-        }
-        h2 {
-            margin-top: 2rem;
-            color: #38bdf8;
-        }
-        h3 {
-            margin-top: 1.5rem;
-            color: #facc15;
-        }
-        p {
+            background-color: #0f172a;
+            color: #e5e7eb;
             line-height: 1.6;
         }
-        code {
-            background-color: #1e293b;
-            padding: 2px 6px;
-            border-radius: 4px;
-        }
-        ul, ol {
-            padding-left: 1.2rem;
-        }
+
         a {
             color: #22c55e;
             text-decoration: none;
         }
-        footer {
-            margin-top: 4rem;
-            font-size: 0.9rem;
-            opacity: 0.7;
+
+        main {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
         }
-        .badge {
-            display: inline-block;
-            background: #22c55e;
-            color: #022c22;
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 600;
+
+        h1, h2, h3 {
+            margin: 0.5rem 0;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #22c55e;
+        }
+
+        h2 {
+            font-size: 2rem;
+            color: #38bdf8;
+            margin-top: 2rem;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: #facc15;
+            margin-top: 1rem;
+        }
+
+        p {
             margin-bottom: 1rem;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 4rem 1rem;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            border-radius: 12px;
+            margin-bottom: 3rem;
+        }
+
+        .hero button {
+            margin-top: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            border: none;
+            border-radius: 8px;
+            background: #22c55e;
+            color: #0f172a;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s ease;
+        }
+
+        .hero button:hover {
+            transform: scale(1.05);
+        }
+
+        /* Team cards */
+        .team {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 3rem;
+        }
+
+        .team-card {
+            background-color: #1e293b;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            flex: 1 1 200px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .team-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .team-card h3 {
+            margin-top: 0.5rem;
+        }
+
+        /* Features grid */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .feature-card {
+            background-color: #1e293b;
+            padding: 1rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-card h4 {
+            color: #22c55e;
+            margin-top: 0;
+        }
+
+        /* Instructions box */
+        .instructions {
+            background-color: #1e293b;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 3rem;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+
+        ol {
+            padding-left: 1.5rem;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.9rem;
+            margin: 2rem 0;
+            opacity: 0.7;
         }
     </style>
 </head>
 <body>
 <main>
-    <span class="badge">CCL3 · Winter Semester 2025</span>
-    <h1>NEOKey (Android Authenticator)</h1>
+    <!-- Hero / Welcome -->
+    <section class="hero">
+        <h1>NEOKey</h1>
+        <p>Securely store and manage authentication codes offline</p>
+        <button onclick="window.open('https://www.figma.com/proto/DbWLH6FjqRhIzv348Sdi6t/CCL_Prototype?page-id=8%3A2&node-id=13-2&p=f&viewport=-571%2C-171%2C0.36&t=QjuQRp3v8rH6H9SL-1&scaling=min-zoom&content-scaling=fixed','_blank')">View Prototype</button>
+    </section>
 
-    <h2>Brief Description</h2>
-    <p>
-        NEOKey is an offline-first Android authentication app that securely stores and manages secrets
-        and generated passwords. All sensitive data is encrypted at rest and can be unlocked using
-        biometrics or a master pincode.
-    </p>
-
+    <!-- Team Members -->
     <h2>Team Members</h2>
-    <ul>
-        <li>Timon Schneider - cc241026</li>
-        <li>Maxim Pollák - cc241059</li>
-    </ul>
+    <div class="team">
+        <div class="team-card">
+            <h3>Timon Schneider</h3>
+            <p>cc241026</p>
+        </div>
+        <div class="team-card">
+            <h3>Maxim Pollák</h3>
+            <p>cc241059</p>
+        </div>
+    </div>
 
-    <h2>App Concept</h2>
+    <!-- App Overview -->
+    <h2>App Overview</h2>
+    <p>NEOKey is an offline-first Android authentication app that securely stores and manages secrets and passwords. All sensitive data is encrypted at rest and can be unlocked using biometrics or a master pincode.</p>
+
     <h3>Goal</h3>
-    <p>
-        Provide a fast, simple, and secure way to store and use authentication codes and passwords
-        without requiring internet access, while keeping sensitive data encrypted and protected
-        by biometric unlock and a master pincode.
-    </p>
+    <p>Provide a fast, simple, and secure way to store and use authentication codes and passwords without internet access, while keeping sensitive data encrypted and protected by biometric unlock and a master pincode.</p>
 
-    <h3>Use Case</h3>
-    <p>A user wants to:</p>
+    <h3>Use Cases & Target Users</h3>
     <ul>
-        <li>Store multiple authentication entries (services, accounts, shared secrets, passwords)</li>
-        <li>Organize them in categories</li>
+        <li>Store multiple authentication entries and organize them in categories</li>
         <li>Quickly reveal/hide codes when needed</li>
         <li>Generate strong passwords inside the app</li>
-        <li>(Optional) Share passwords with others securely</li>
+        <li>Share passwords securely (optional)</li>
+        <li>Students, security-conscious users, and users who prefer offline local storage</li>
     </ul>
 
-    <h3>Target Users</h3>
-    <ul>
-        <li>Students and everyday users managing multiple accounts</li>
-        <li>Security-conscious users who prefer local storage and encryption</li>
-        <li>Users wanting quick access via biometric unlock</li>
-        <li>Users who want optional secure password sharing</li>
-    </ul>
-
-    <h2>Hi-Fi Prototype (User Flow)</h2>
-    <p>Prototype link: <a href="https://www.figma.com/proto/DbWLH6FjqRhIzv348Sdi6t/CCL_Prototype?page-id=8%3A2&node-id=13-2&p=f&viewport=-571%2C-171%2C0.36&t=QjuQRp3v8rH6H9SL-1&scaling=min-zoom&content-scaling=fixed" target="_blank">Figma Prototype</a></p>
-
+    <!-- Features -->
     <h2>Core Features</h2>
-    <ul>
-        <li>Full CRUD: Create / Read / Update / Delete encrypted code entries</li>
-        <li>Local SQLite database (Room)</li>
-        <li>Jetpack Compose UI (no XML)</li>
-        <li>Reveal/Hide stored codes</li>
-        <li>Built-in secure password generator with strength meter</li>
-        <li>Offline-first design (no internet required)</li>
-        <li>Biometric unlock (fingerprint / face)</li>
-        <li>Encryption & decryption</li>
-        <li>Categories for organization</li>
-    </ul>
+    <div class="features">
+        <div class="feature-card">
+            <h4>CRUD Entries</h4>
+            <p>Create, read, update, and delete encrypted code entries</p>
+        </div>
+        <div class="feature-card">
+            <h4>Password Generator</h4>
+            <p>Generate strong passwords with strength meter and copy option</p>
+        </div>
+        <div class="feature-card">
+            <h4>Offline & Secure</h4>
+            <p>All data stored locally with encryption & biometric unlock</p>
+        </div>
+        <div class="feature-card">
+            <h4>Categories</h4>
+            <p>Organize entries into categories for easy navigation</p>
+        </div>
+    </div>
 
-    <h2>How to Run the App Locally</h2>
-    <ol>
-        <li>Clone this repository to your local machine.</li>
-        <li>Open Android Studio and select <code>Open</code>.</li>
-        <li>Navigate to <code>/code/NEOKey</code> folder and open it.</li>
-        <li>Let Android Studio sync Gradle and build the project.</li>
-        <li>Run the app on an emulator or physical Android device.</li>
-    </ol>
+    <!-- Instructions -->
+    <h2>How to Run Locally</h2>
+    <div class="instructions">
+        <ol>
+            <li>Clone this repository to your local machine.</li>
+            <li>Open Android Studio and select <code>Open</code>.</li>
+            <li>Navigate to <code>/code/NEOKey</code> folder and open it.</li>
+            <li>Let Android Studio sync Gradle and build the project.</li>
+            <li>Run the app on an emulator or physical Android device.</li>
+        </ol>
+    </div>
 
-    <h2>Folder Structure</h2>
-    <ul>
-        <li><code>/code</code> – Android Studio project (source code, Gradle files)</li>
-        <li><code>/pages</code> – Original GitHub Pages folder</li>
-    </ul>
-
+    <!-- Footer -->
     <footer>
-        <p>Created by Timon Schneider & Maxim Pollák – Creative Code Lab 3, Winter Semester 2025</p>
+        Created by Timon Schneider & Maxim Pollák – Creative Code Lab 3, Winter Semester 2025
     </footer>
 </main>
 </body>

@@ -1,31 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>NEOKey – CCL3 Project</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0f172a;
+            background-color: #0f172a;
             color: #e5e7eb;
             margin: 0;
             padding: 0;
         }
         main {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
             padding: 3rem 1.5rem;
         }
         h1 {
-            font-size: 2.5rem;
+            font-size: 3rem;
+            color: #22c55e;
             margin-bottom: 0.5rem;
         }
         h2 {
             margin-top: 2rem;
+            color: #38bdf8;
+        }
+        h3 {
+            margin-top: 1.5rem;
+            color: #facc15;
         }
         p {
             line-height: 1.6;
+        }
+        code {
+            background-color: #1e293b;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        ul, ol {
+            padding-left: 1.2rem;
+        }
+        a {
+            color: #22c55e;
+            text-decoration: none;
+        }
+        footer {
+            margin-top: 4rem;
+            font-size: 0.9rem;
+            opacity: 0.7;
         }
         .badge {
             display: inline-block;
@@ -35,48 +58,87 @@
             border-radius: 6px;
             font-size: 0.85rem;
             font-weight: 600;
-        }
-        footer {
-            margin-top: 4rem;
-            font-size: 0.9rem;
-            opacity: 0.7;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
 <body>
 <main>
     <span class="badge">CCL3 · Winter Semester 2025</span>
-    <h1>NEOKey</h1>
+    <h1>NEOKey (Android Authenticator)</h1>
 
+    <h2>Brief Description</h2>
     <p>
-        NEOKey is a Creative Code Lab 3 project developed as an Android application
-        using Kotlin and Android Studio.
+        NEOKey is an offline-first Android authentication app that securely stores and manages secrets
+        and generated passwords. All sensitive data is encrypted at rest and can be unlocked using
+        biometrics or a master pincode.
     </p>
 
-    <h2>Project Overview</h2>
-    <p>
-        The goal of this project is to explore mobile interaction, interface design,
-        and creative computing concepts through the development of a native Android app.
-    </p>
-
-    <h2>Technology</h2>
+    <h2>Team Members</h2>
     <ul>
-        <li>Kotlin</li>
-        <li>Android Studio</li>
-        <li>Gradle</li>
-        <li>GitHub & GitHub Pages</li>
+        <li>Timon Schneider - cc241026</li>
+        <li>Maxim Pollák - cc241059</li>
     </ul>
 
-    <h2>Repository Structure</h2>
+    <h2>App Concept</h2>
+    <h3>Goal</h3>
+    <p>
+        Provide a fast, simple, and secure way to store and use authentication codes and passwords
+        without requiring internet access, while keeping sensitive data encrypted and protected
+        by biometric unlock and a master pincode.
+    </p>
+
+    <h3>Use Case</h3>
+    <p>A user wants to:</p>
     <ul>
-        <li><strong>/code</strong> – Android project source code</li>
-        <li><strong>/pages</strong> – Project website (GitHub Pages)</li>
+        <li>Store multiple authentication entries (services, accounts, shared secrets, passwords)</li>
+        <li>Organize them in categories</li>
+        <li>Quickly reveal/hide codes when needed</li>
+        <li>Generate strong passwords inside the app</li>
+        <li>(Optional) Share passwords with others securely</li>
+    </ul>
+
+    <h3>Target Users</h3>
+    <ul>
+        <li>Students and everyday users managing multiple accounts</li>
+        <li>Security-conscious users who prefer local storage and encryption</li>
+        <li>Users wanting quick access via biometric unlock</li>
+        <li>Users who want optional secure password sharing</li>
+    </ul>
+
+    <h2>Hi-Fi Prototype (User Flow)</h2>
+    <p>Prototype link: <a href="https://www.figma.com/proto/DbWLH6FjqRhIzv348Sdi6t/CCL_Prototype?page-id=8%3A2&node-id=13-2&p=f&viewport=-571%2C-171%2C0.36&t=QjuQRp3v8rH6H9SL-1&scaling=min-zoom&content-scaling=fixed" target="_blank">Figma Prototype</a></p>
+
+    <h2>Core Features</h2>
+    <ul>
+        <li>Full CRUD: Create / Read / Update / Delete encrypted code entries</li>
+        <li>Local SQLite database (Room)</li>
+        <li>Jetpack Compose UI (no XML)</li>
+        <li>Reveal/Hide stored codes</li>
+        <li>Built-in secure password generator with strength meter</li>
+        <li>Offline-first design (no internet required)</li>
+        <li>Biometric unlock (fingerprint / face)</li>
+        <li>Encryption & decryption</li>
+        <li>Categories for organization</li>
+    </ul>
+
+    <h2>How to Run the App Locally</h2>
+    <ol>
+        <li>Clone this repository to your local machine.</li>
+        <li>Open Android Studio and select <code>Open</code>.</li>
+        <li>Navigate to <code>/code/NEOKey</code> folder and open it.</li>
+        <li>Let Android Studio sync Gradle and build the project.</li>
+        <li>Run the app on an emulator or physical Android device.</li>
+    </ol>
+
+    <h2>Folder Structure</h2>
+    <ul>
+        <li><code>/code</code> – Android Studio project (source code, Gradle files)</li>
+        <li><code>/pages</code> – Original GitHub Pages folder</li>
     </ul>
 
     <footer>
-        <p>
-            Created by Maxim Pollak & Timon Schneider – Creative Code Lab 3
-        </p>
+        <p>Created by Timon Schneider & Maxim Pollák – Creative Code Lab 3, Winter Semester 2025</p>
     </footer>
 </main>
 </body>

@@ -1,10 +1,12 @@
+// File: MainScreen.kt
 package dev.maximpollak.neokey.ui.main
 
-import androidx.activity.ComponentActivity
-import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Fingerprint
+import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,11 +14,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import dev.maximpollak.neokey.security.BiometricAuth
 
 @Composable
 fun MainScreen(
     onUnlocked: () -> Unit,
+    onUsePin: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
@@ -32,8 +36,28 @@ fun MainScreen(
         ) {
             Spacer(Modifier.height(80.dp))
 
-            // 🔒 Icon placeholder (replace with your own vector/image)
-            Text("🔒", style = MaterialTheme.typography.displaySmall)
+            // Top lock icon
+            Surface(
+                shape = RoundedCornerShape(18.dp),
+                tonalElevation = 2.dp,
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)
+                )
+            ) {
+                Box(
+                    modifier = Modifier.padding(18.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Lock,
+                        contentDescription = "Lock",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(34.dp)
+                    )
+                }
+            }
 
             Spacer(Modifier.height(24.dp))
 
@@ -56,7 +80,9 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.35f)),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f))
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
+                )
             ) {
                 Column(
                     modifier = Modifier
@@ -64,10 +90,25 @@ fun MainScreen(
                         .padding(20.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // fingerprint icon placeholder
-                    Text("🫆", style = MaterialTheme.typography.displaySmall)
+                    // Fingerprint icon in a circle-ish surface
+                    Surface(
+                        shape = RoundedCornerShape(999.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                    ) {
+                        Box(
+                            modifier = Modifier.padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Fingerprint,
+                                contentDescription = "Fingerprint",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(34.dp)
+                            )
+                        }
+                    }
 
-                    Spacer(Modifier.height(12.dp))
+                    Spacer(Modifier.height(14.dp))
 
                     Button(
                         onClick = {
@@ -87,7 +128,7 @@ fun MainScreen(
                                 activity = activity,
                                 onSuccess = onUnlocked,
                                 onError = { msg -> errorMessage = msg },
-                                onFailure = { /* optional: show a tiny hint */ }
+                                onFailure = { /* optional */ }
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
@@ -105,7 +146,13 @@ fun MainScreen(
                         textAlign = TextAlign.Center
                     )
 
-
+                    // Optional PIN button (only clickable if you pass onUsePin)
+                    TextButton(
+                        onClick = { onUsePin?.invoke() },
+                        enabled = onUsePin != null
+                    ) {
+                        Text("Use PIN / Password")
+                    }
 
                     if (errorMessage != null) {
                         Spacer(Modifier.height(8.dp))

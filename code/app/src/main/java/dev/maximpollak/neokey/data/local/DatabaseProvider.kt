@@ -6,13 +6,13 @@ import androidx.room.Room
 object DatabaseProvider {
 
     @Volatile
-    private var INSTANCE: AppDatabase? = null
+    private var INSTANCE: AppDataBase? = null
 
-    fun getDatabase(context: Context): AppDatabase {
+    fun getDatabase(context: Context): AppDataBase {
         return INSTANCE ?: synchronized(this) {
             val instance = Room.databaseBuilder(
                 context.applicationContext,
-                AppDatabase::class.java,
+                AppDataBase::class.java,
                 "secretum_db"
             )
                 .fallbackToDestructiveMigration()

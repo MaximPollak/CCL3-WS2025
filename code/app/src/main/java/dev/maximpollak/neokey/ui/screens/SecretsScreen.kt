@@ -314,11 +314,10 @@ private fun SecretListCard(
 
                 // small copy affordance: tap password card to detail; copy is explicit
                 IconButton(onClick = onCopyPassword) {
-                    // reuse visibility icon set only; if you want a copy icon, tell me which icon pack you're using
                     Icon(
-                        imageVector = Icons.Outlined.Search, // placeholder if you don't have ContentCopy outlined imported
-                        contentDescription = "Copy",
-                        tint = Color.Transparent // hide placeholder
+                        imageVector = Icons.Filled.ContentCopy,
+                        contentDescription = "Copy password",
+                        tint = Color.White.copy(alpha = 0.65f)
                     )
                 }
             }

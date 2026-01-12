@@ -46,7 +46,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,8 +73,8 @@ fun SecretsScreen(
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
 
-    var query by rememberSaveable { mutableStateOf("") }
-    val revealed = rememberSaveable { mutableStateMapOf<Int, Boolean>() }
+    var query by remember { mutableStateOf("") }
+    val revealed = remember { mutableStateMapOf<Int, Boolean>() }
 
     val filtered = remember(query, secrets) {
         val q = query.trim().lowercase()

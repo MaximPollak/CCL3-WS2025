@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
-import dev.maximpollak.secretum.ui.screens.*
+import dev.maximpollak.neokey.ui.screens.*
 
 @Composable
 fun NavGraph() {

@@ -13,7 +13,7 @@ object DatabaseProvider {
             val instance = Room.databaseBuilder(
                 context.applicationContext,
                 AppDataBase::class.java,
-                "secretum_db"
+                "secrets"
             )
                 .fallbackToDestructiveMigration()
                 .build()

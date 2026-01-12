@@ -5,18 +5,20 @@ import dev.maximpollak.neokey.domain.model.SecretType
 
 
 fun SecretEntity.toDomain(): Secret {
-    val secretType = when (type.uppercase()) {
-        "PASSWORD" -> SecretType.PASSWORD
+    val secretType = when (category.uppercase()) {
+        "WORK" -> SecretType.WORK
         "WIFI" -> SecretType.WIFI
-        "NOTE" -> SecretType.NOTE
-        else -> SecretType.NOTE // fallback default
+        "EDUCATION" -> SecretType.EDUCATION
+        else -> SecretType.ELSE
     }
 
     return Secret(
         id = id,
         title = title,
-        content = content,
-        type = secretType,
+        account = account,
+        password = password,
+        category = secretType,
+        note = note,
         createdAt = createdAt
     )
 }
@@ -25,8 +27,10 @@ fun Secret.toEntity(): SecretEntity {
     return SecretEntity(
         id = id,
         title = title,
-        content = content,
-        type = type.name,
+        account = account,
+        password = password,
+        category = category.name,
+        note = note,
         createdAt = createdAt
     )
 }

@@ -15,23 +15,36 @@ class SecretRepository(
     fun getAllSecrets(): Flow<List<Secret>> {
         return dao.getAllSecrets().map { entityList ->
             entityList.map { entity ->
-                val decrypted = CryptoManager.decrypt(entity.content)
-                entity.copy(content = decrypted).toDomain()
+                val decryptedAccount = CryptoManager.decrypt(entity.account)
+                val decryptedPassword = CryptoManager.decrypt(entity.password)
+                val decryptedNote = entity.note?.let { CryptoManager.decrypt(it) }
+
+                entity.copy(
+                    account = decryptedAccount,
+                    password = decryptedPassword,
+                    note = decryptedNote
+                ).toDomain()
             }
         }
     }
 
     suspend fun insertSecret(secret: Secret) {
         val encrypted = secret.copy(
-            content = CryptoManager.encrypt(secret.content)
+            account = CryptoManager.encrypt(secret.account),
+            password = CryptoManager.encrypt(secret.password),
+            note = secret.note?.let { CryptoManager.encrypt(it) }
         )
+
         dao.insertSecret(encrypted.toEntity())
     }
 
     suspend fun updateSecret(secret: Secret) {
         val encrypted = secret.copy(
-            content = CryptoManager.encrypt(secret.content)
+            account = CryptoManager.encrypt(secret.account),
+            password = CryptoManager.encrypt(secret.password),
+            note = secret.note?.let { CryptoManager.encrypt(it) }
         )
+
         dao.updateSecret(encrypted.toEntity())
     }
 

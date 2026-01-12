@@ -8,6 +8,6 @@ import androidx.room.RoomDatabase
     version = 3,
     exportSchema = false
 )
-abstract class AppDatabase : RoomDatabase() {
+abstract class AppDataBase : RoomDatabase() {
     abstract fun secretDao(): SecretDao
 }

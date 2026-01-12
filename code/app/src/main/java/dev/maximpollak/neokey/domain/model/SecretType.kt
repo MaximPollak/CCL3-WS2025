@@ -1,7 +1,9 @@
 package dev.maximpollak.neokey.domain.model
 
 enum class SecretType {
-    PASSWORD,
+    WORK,
     WIFI,
-    NOTE
+    EDUCATION,
+    PRIVATE,
+    ELSE
 }

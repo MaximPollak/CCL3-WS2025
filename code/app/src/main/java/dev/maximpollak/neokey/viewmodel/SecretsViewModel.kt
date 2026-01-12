@@ -1,3 +1,4 @@
+// File: SecretsViewModel.kt
 package dev.maximpollak.neokey.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -21,14 +22,10 @@ class SecretsViewModel(
         viewModelScope.launch {
             repository.getAllSecrets()
                 .map { list ->
-                    // Decrypt content in-memory for UI
                     list.map { secret ->
                         secret.copy(
-                            content = try {
-                                CryptoManager.decrypt(secret.content)
-                            } catch (e: Exception) {
-                                "Decryption failed"
-                            }
+                            password = decryptOrFallback(secret.password, fallback = "Decryption failed"),
+                            note = secret.note?.let { decryptOrFallback(it, fallback = null) }
                         )
                     }
                 }
@@ -39,16 +36,30 @@ class SecretsViewModel(
     }
 
     fun addSecret(secret: Secret) = viewModelScope.launch {
-        val encryptedSecret = secret.copy(content = CryptoManager.encrypt(secret.content))
-        repository.insertSecret(encryptedSecret)
+        val encrypted = secret.copy(
+            password = CryptoManager.encrypt(secret.password),
+            note = secret.note?.let { CryptoManager.encrypt(it) }
+        )
+        repository.insertSecret(encrypted)
     }
 
     fun updateSecret(secret: Secret) = viewModelScope.launch {
-        val encryptedSecret = secret.copy(content = CryptoManager.encrypt(secret.content))
-        repository.updateSecret(encryptedSecret)
+        val encrypted = secret.copy(
+            password = CryptoManager.encrypt(secret.password),
+            note = secret.note?.let { CryptoManager.encrypt(it) }
+        )
+        repository.updateSecret(encrypted)
     }
 
     fun deleteSecret(secret: Secret) = viewModelScope.launch {
         repository.deleteSecret(secret)
+    }
+
+    private fun decryptOrFallback(value: String, fallback: String?): String {
+        return try {
+            CryptoManager.decrypt(value)
+        } catch (_: Exception) {
+            fallback ?: ""
+        }
     }
 }

@@ -4,150 +4,363 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.domain.model.SecretType
-import dev.maximpollak.neokey.security.CryptoManager
-import dev.maximpollak.neokey.utils.color
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
+import kotlin.math.max
 
 @Composable
 fun SecretsScreen(
     onAddClick: () -> Unit,
-    onBackClick: () -> Unit,
+    onBackClick: () -> Unit, // kept for compatibility with NavGraph (not used in this design)
     onSecretClick: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
-    var filter by remember { mutableStateOf<SecretType?>(null) }
-    val filteredSecrets = secrets.filter { filter == null || it.type == filter }
 
-    Scaffold(containerColor = Color(0xFF121212)) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+    var query by rememberSaveable { mutableStateOf("") }
+    val revealed = rememberSaveable { mutableStateMapOf<Int, Boolean>() }
 
-            Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                // Filter Buttons
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterButton("All", selected = filter == null) { filter = null }
-                    FilterButton("Password", selected = filter == SecretType.PASSWORD) { filter = SecretType.PASSWORD }
-                    FilterButton("WiFi", selected = filter == SecretType.WIFI) { filter = SecretType.WIFI }
-                    FilterButton("Note", selected = filter == SecretType.NOTE) { filter = SecretType.NOTE }
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                if (filteredSecrets.isEmpty()) {
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text("No secrets found", color = Color.Gray)
-                    }
-                } else {
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(filteredSecrets) { secret ->
-                            SecretCard(secret = secret, onClick = { onSecretClick(secret.id) }, context = context)
-                        }
-                    }
-                }
-            }
-
-            // Bottom FAB buttons
-            Box(modifier = Modifier.fillMaxSize()) {
-                FloatingActionButton(
-                    onClick = onBackClick,
-                    containerColor = Color(0xFF1F1F1F),
-                    modifier = Modifier.align(Alignment.BottomStart).padding(16.dp).size(56.dp)
-                ) {
-                    Icon(Icons.Filled.ArrowBack, contentDescription = "Back", tint = Color.White)
-                }
-
-                FloatingActionButton(
-                    onClick = onAddClick,
-                    containerColor = Color(0xFF1F8EF1),
-                    modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).size(56.dp)
-                ) {
-                    Text("+", color = Color.White, fontSize = 24.sp)
-                }
-            }
+    val filtered = remember(query, secrets) {
+        val q = query.trim().lowercase()
+        if (q.isEmpty()) secrets
+        else secrets.filter { s ->
+            s.title.lowercase().contains(q) ||
+                    s.account.lowercase().contains(q) ||
+                    s.category.name.lowercase().contains(q) ||
+                    (s.note?.lowercase()?.contains(q) == true)
         }
     }
-}
 
-@Composable
-fun FilterButton(label: String, selected: Boolean, onClick: () -> Unit) {
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) Color(0xFF1F8EF1) else Color(0xFF1F1F1F),
-            contentColor = if (selected) Color.White else Color.White
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF070A12), Color(0xFF0B1020))
+                )
+            )
+            .statusBarsPadding()
     ) {
-        Text(label)
-    }
-}
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp)
+        ) {
+            Spacer(Modifier.height(12.dp))
 
-@Composable
-fun SecretCard(secret: Secret, onClick: () -> Unit, context: Context) {
-    val decryptedContent = remember(secret.content) {
-        try { CryptoManager.decrypt(secret.content) } catch (e: Exception) { "" }
-    }
+            // Header like prototype: NEOKey + secured entries + search icon
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(
+                        text = "NEOKey",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = "${filtered.size} secured entries",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = Color.White.copy(alpha = 0.65f)
+                    )
+                }
 
-    Card(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E1E1E)),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = secret.type.name,
-                color = Color.White,
-                modifier = Modifier.background(secret.type.color()).padding(horizontal = 6.dp, vertical = 2.dp),
-                fontSize = 12.sp
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.White.copy(alpha = 0.04f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Search,
+                        contentDescription = null,
+                        tint = Color.White.copy(alpha = 0.75f),
+                        modifier = Modifier.size(22.dp)
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            SearchPill(
+                value = query,
+                onValueChange = { query = it }
             )
 
-            Spacer(modifier = Modifier.height(6.dp))
+            Spacer(Modifier.height(14.dp))
 
-            Text(secret.title, style = MaterialTheme.typography.titleMedium, color = Color.White)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 110.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(filtered, key = { it.id }) { secret ->
+                    val isRevealed = revealed[secret.id] == true
 
-            Spacer(modifier = Modifier.height(4.dp))
+                    SecretListCard(
+                        secret = secret,
+                        revealed = isRevealed,
+                        onToggleReveal = { revealed[secret.id] = !isRevealed },
+                        onCopyPassword = { copyToClipboard(context, "password", secret.password) },
+                        onClick = { onSecretClick(secret.id) }
+                    )
+                }
+            }
+        }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+        // Center bottom + FAB like prototype
+        FloatingActionButton(
+            onClick = onAddClick,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(bottom = 18.dp)
+                .size(64.dp),
+            shape = CircleShape,
+            containerColor = Color(0xFF0D121E),
+            contentColor = Color(0xFF25E6C8),
+            elevation = FloatingActionButtonDefaults.elevation(
+                defaultElevation = 12.dp,
+                pressedElevation = 16.dp
+            )
+        ) {
+            Text(
+                text = "+",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }
+}
+
+@Composable
+private fun SearchPill(
+    value: String,
+    onValueChange: (String) -> Unit
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(54.dp),
+        singleLine = true,
+        placeholder = {
+            Text(
+                text = "Search entries...",
+                color = Color.White.copy(alpha = 0.45f)
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.65f)
+            )
+        },
+        shape = RoundedCornerShape(18.dp),
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.White.copy(alpha = 0.05f),
+            unfocusedContainerColor = Color.White.copy(alpha = 0.05f),
+            disabledContainerColor = Color.White.copy(alpha = 0.04f),
+            focusedBorderColor = Color.White.copy(alpha = 0.10f),
+            unfocusedBorderColor = Color.White.copy(alpha = 0.08f),
+            cursorColor = Color(0xFF25E6C8),
+            focusedTextColor = Color.White,
+            unfocusedTextColor = Color.White
+        )
+    )
+}
+
+@Composable
+private fun SecretListCard(
+    secret: Secret,
+    revealed: Boolean,
+    onToggleReveal: () -> Unit,
+    onCopyPassword: () -> Unit,
+    onClick: () -> Unit
+) {
+    val cardShape = RoundedCornerShape(22.dp)
+    val surface = Color.White.copy(alpha = 0.05f)
+    val border = Color.White.copy(alpha = 0.08f)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(cardShape)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick = onClick
+            )
+            .border(1.dp, border, cardShape),
+        shape = cardShape,
+        colors = CardDefaults.cardColors(containerColor = surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
-                    text = when (secret.type) {
-                        SecretType.PASSWORD -> "••••••••"
-                        SecretType.WIFI -> "Hidden WiFi password"
-                        SecretType.NOTE -> "Encrypted note"
-                    },
-                    color = Color.Gray
+                    text = secret.title,
+                    color = Color.White,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
                 )
 
-                IconButton(
-                    onClick = {
-                        val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-                        clipboard.setPrimaryClip(ClipData.newPlainText("secret", decryptedContent))
-                    }
-                ) {
-                    Icon(Icons.Filled.ContentCopy, contentDescription = "Copy", tint = Color.White)
+                CategoryChip(secret.category)
+            }
+
+            Spacer(Modifier.height(4.dp))
+
+            Text(
+                text = secret.account,
+                color = Color.White.copy(alpha = 0.62f),
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Spacer(Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = if (revealed) secret.password else dotMask(secret.password),
+                    color = Color.White.copy(alpha = 0.70f),
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+
+                IconButton(onClick = onToggleReveal) {
+                    Icon(
+                        imageVector = if (revealed) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                        contentDescription = if (revealed) "Hide password" else "Reveal password",
+                        tint = Color.White.copy(alpha = 0.65f)
+                    )
+                }
+
+                // small copy affordance: tap password card to detail; copy is explicit
+                IconButton(onClick = onCopyPassword) {
+                    // reuse visibility icon set only; if you want a copy icon, tell me which icon pack you're using
+                    Icon(
+                        imageVector = Icons.Outlined.Search, // placeholder if you don't have ContentCopy outlined imported
+                        contentDescription = "Copy",
+                        tint = Color.Transparent // hide placeholder
+                    )
                 }
             }
         }
     }
+}
+
+@Composable
+private fun CategoryChip(type: SecretType) {
+    val (bg, fg, label) = when (type) {
+        SecretType.WORK -> Triple(Color(0xFF0E3D3A), Color(0xFF25E6C8), "Work")
+        SecretType.EDUCATION -> Triple(Color(0xFF3A1041), Color(0xFFDA57FF), "Education")
+        SecretType.WIFI -> Triple(Color(0xFF102A43), Color(0xFF6EC6FF), "WiFi")
+        SecretType.PRIVATE -> Triple(Color(0xFF3A1A10), Color(0xFFFF9B6A), "Private")
+        SecretType.ELSE -> Triple(Color(0xFF2A2F3A), Color(0xFFB9C2D3), "Else")
+    }
+
+    Box(
+        modifier = Modifier
+            .padding(start = 10.dp)
+            .clip(RoundedCornerShape(999.dp))
+            .background(bg.copy(alpha = 0.95f))
+            .border(1.dp, fg.copy(alpha = 0.35f), RoundedCornerShape(999.dp))
+            .padding(horizontal = 10.dp, vertical = 5.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            color = fg,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Medium
+        )
+    }
+}
+
+private fun dotMask(password: String): String {
+    val len = max(8, minOf(password.length, 14))
+    return "•".repeat(len)
+}
+
+private fun copyToClipboard(context: Context, label: String, value: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
 }

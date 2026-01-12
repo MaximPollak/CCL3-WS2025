@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
 import androidx.navigation.navArgument
+import dev.maximpollak.neokey.ui.main.MainScreen
 import dev.maximpollak.neokey.ui.screens.*
 
 @Composable
@@ -17,7 +18,8 @@ fun NavGraph() {
 
         composable("main") {
             MainScreen(
-                onNavigateToSecrets = { navController.navigate("secrets") }
+                onUnlocked = { navController.navigate("secrets") { popUpTo("main") { inclusive = true } } },
+                onUsePin = { navController.navigate("pin") } // optional
             )
         }
 

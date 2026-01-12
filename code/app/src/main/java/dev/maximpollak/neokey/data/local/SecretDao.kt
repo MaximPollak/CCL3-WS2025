@@ -6,26 +6,23 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface SecretDao {
 
-    @Transaction
-    @Query("SELECT * FROM secrets")
-    fun getAllWithCredentials(): Flow<List<SecretWithCredential>>
+    // READ: get all secrets
+    @Query("SELECT * FROM secrets ORDER BY createdAt DESC")
+    fun getAllSecrets(): Flow<List<SecretEntity>>
 
-    @Transaction
+    // READ: get one secret
     @Query("SELECT * FROM secrets WHERE id = :id")
-    suspend fun getByIdWithCredential(id: Int): SecretWithCredential?
+    suspend fun getSecretById(id: Int): SecretEntity?
 
+    // CREATE
     @Insert
     suspend fun insertSecret(secret: SecretEntity): Long
 
-    @Insert
-    suspend fun insertCredential(cred: CredentialEntity)
-
+    // UPDATE
     @Update
     suspend fun updateSecret(secret: SecretEntity)
 
-    @Update
-    suspend fun updateCredential(cred: CredentialEntity)
-
-    @Query("DELETE FROM secrets WHERE id = :id")
-    suspend fun deleteSecret(id: Int)
+    // DELETE
+    @Delete
+    suspend fun deleteSecret(secret: SecretEntity)
 }

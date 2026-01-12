@@ -23,7 +23,6 @@ fun NavGraph() {
         composable("main") {
             MainScreen(
                 onUnlocked = { navController.navigate("secrets") { popUpTo("main") { inclusive = true } } },
-                onUsePin = { navController.navigate("pin") } // optional
             )
         }
 

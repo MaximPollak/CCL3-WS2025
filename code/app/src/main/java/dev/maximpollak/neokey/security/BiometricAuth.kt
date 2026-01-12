@@ -11,7 +11,8 @@ object BiometricAuth {
         val manager = BiometricManager.from(activity)
         return manager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
-                    BiometricManager.Authenticators.BIOMETRIC_WEAK
+                    BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                    BiometricManager.Authenticators.DEVICE_CREDENTIAL
         ) == BiometricManager.BIOMETRIC_SUCCESS
     }
 
@@ -28,9 +29,7 @@ object BiometricAuth {
             executor,
             object : BiometricPrompt.AuthenticationCallback() {
 
-                override fun onAuthenticationSucceeded(
-                    result: BiometricPrompt.AuthenticationResult
-                ) {
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
                     onSuccess()
                 }
 
@@ -38,10 +37,7 @@ object BiometricAuth {
                     onFailure()
                 }
 
-                override fun onAuthenticationError(
-                    errorCode: Int,
-                    errString: CharSequence
-                ) {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
                     onError(errString.toString())
                 }
             }
@@ -50,7 +46,11 @@ object BiometricAuth {
         val promptInfo = BiometricPrompt.PromptInfo.Builder()
             .setTitle("Unlock NEOKey")
             .setSubtitle("Authenticate to access your secrets")
-            .setNegativeButtonText("Use PIN / Password")
+            .setAllowedAuthenticators(
+                BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                        BiometricManager.Authenticators.BIOMETRIC_WEAK or
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
+            )
             .build()
 
         prompt.authenticate(promptInfo)

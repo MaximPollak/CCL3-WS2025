@@ -17,7 +17,6 @@ import dev.maximpollak.neokey.security.BiometricAuth
 @Composable
 fun MainScreen(
     onUnlocked: () -> Unit,
-    onUsePin: () -> Unit // you can route to a PIN screen later
 ) {
     val context = LocalContext.current
     val activity = context as? FragmentActivity
@@ -106,9 +105,7 @@ fun MainScreen(
                         textAlign = TextAlign.Center
                     )
 
-                    TextButton(onClick = onUsePin) {
-                        Text("Use PIN / Password")
-                    }
+
 
                     if (errorMessage != null) {
                         Spacer(Modifier.height(8.dp))

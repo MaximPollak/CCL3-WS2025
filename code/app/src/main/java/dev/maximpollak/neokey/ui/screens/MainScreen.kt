@@ -1,6 +1,7 @@
 package dev.maximpollak.neokey.ui.main
 
 import androidx.activity.ComponentActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,7 +20,7 @@ fun MainScreen(
     onUsePin: () -> Unit // you can route to a PIN screen later
 ) {
     val context = LocalContext.current
-    val activity = context as? ComponentActivity
+    val activity = context as? FragmentActivity
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
 

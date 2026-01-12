@@ -1,13 +1,13 @@
 package dev.maximpollak.neokey.security
 
-import androidx.activity.ComponentActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
+import androidx.fragment.app.FragmentActivity
 
 object BiometricAuth {
 
-    fun canAuthenticate(activity: ComponentActivity): Boolean {
+    fun canAuthenticate(activity: FragmentActivity): Boolean {
         val manager = BiometricManager.from(activity)
         return manager.canAuthenticate(
             BiometricManager.Authenticators.BIOMETRIC_STRONG or
@@ -16,7 +16,7 @@ object BiometricAuth {
     }
 
     fun authenticate(
-        activity: ComponentActivity,
+        activity: FragmentActivity,
         onSuccess: () -> Unit,
         onFailure: () -> Unit = {},
         onError: (String) -> Unit = {}

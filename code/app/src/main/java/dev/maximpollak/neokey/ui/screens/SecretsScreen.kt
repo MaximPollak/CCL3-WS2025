@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.outlined.ArrowBackIosNew
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
@@ -124,9 +126,19 @@ fun SecretsScreen(
             // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                // Back button
+                IconButton(onClick = onBackClick) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowBackIosNew,
+                        contentDescription = "Back",
+                        tint = Color(0xFF38FBDB) // NeoMint
+                    )
+                }
+
+                Spacer(Modifier.width(6.dp))
+
                 Column {
                     Text(
                         text = "NEOKey",

@@ -30,9 +30,8 @@ fun NavGraph() {
 
         composable("categories") {
             CategoriesScreen(
-                onCategoryClick = { key ->
-                    navController.navigate("secrets/$key")
-                }
+                onCategoryClick = { key -> navController.navigate("secrets/$key") },
+                onAddClick = { navController.navigate("add") }
             )
         }
 

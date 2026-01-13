@@ -320,7 +320,7 @@ private fun SecretType.prettyLabel(): String = when (this) {
     SecretType.WIFI -> "WiFi"
     SecretType.EDUCATION -> "Education"
     SecretType.PRIVATE -> "Private"
-    SecretType.ELSE -> "Else"
+    SecretType.ELSE -> "Other"
 }
 
 @Composable

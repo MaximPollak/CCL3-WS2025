@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -39,7 +39,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -104,7 +103,7 @@ fun SecretsScreen(
         ) {
             Spacer(Modifier.height(12.dp))
 
-            // Header like prototype: NEOKey + secured entries + search icon
+            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
@@ -124,8 +123,6 @@ fun SecretsScreen(
                         color = Color.White.copy(alpha = 0.65f)
                     )
                 }
-
-
             }
 
             Spacer(Modifier.height(14.dp))
@@ -156,7 +153,6 @@ fun SecretsScreen(
             }
         }
 
-        // Center bottom + FAB like prototype
         FloatingActionButton(
             onClick = onAddClick,
             modifier = Modifier
@@ -230,7 +226,10 @@ private fun SecretListCard(
 ) {
     val cardShape = RoundedCornerShape(22.dp)
     val surface = Color.White.copy(alpha = 0.05f)
-    val border = Color.White.copy(alpha = 0.08f)
+
+    // Category-based border color
+    val accent = secret.category.accentColor()
+    val border = accent.copy(alpha = 0.35f)
 
     Card(
         modifier = Modifier
@@ -299,7 +298,6 @@ private fun SecretListCard(
                     )
                 }
 
-                // small copy affordance: tap password card to detail; copy is explicit
                 IconButton(onClick = onCopyPassword) {
                     Icon(
                         imageVector = Icons.Filled.ContentCopy,
@@ -338,6 +336,14 @@ private fun CategoryChip(type: SecretType) {
             fontWeight = FontWeight.Medium
         )
     }
+}
+
+private fun SecretType.accentColor(): Color = when (this) {
+    SecretType.WORK -> Color(0xFF25E6C8)
+    SecretType.EDUCATION -> Color(0xFFDA57FF)
+    SecretType.WIFI -> Color(0xFF6EC6FF)
+    SecretType.PRIVATE -> Color(0xFFFF9B6A)
+    SecretType.ELSE -> Color(0xFFB9C2D3)
 }
 
 private fun dotMask(password: String): String {

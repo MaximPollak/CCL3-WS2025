@@ -31,6 +31,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.maximpollak.neokey.domain.model.SecretType
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
+import dev.maximpollak.neokey.utils.calculatePasswordStrength
+
 import kotlin.math.max
 import kotlin.math.min
 
@@ -204,7 +206,9 @@ fun SecretDetailScreen(
 
                 Spacer(Modifier.height(14.dp))
 
-                val strength = passwordStrength(secretValue.password)
+                val strength = calculatePasswordStrength(secretValue.password)
+                val progress = strengthToProgress(strength.score)
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -212,7 +216,7 @@ fun SecretDetailScreen(
                     Icon(
                         imageVector = Icons.Outlined.Shield,
                         contentDescription = null,
-                        tint = neoMint,
+                        tint = strength.color, // ✅ use util color
                         modifier = Modifier.size(18.dp)
                     )
 
@@ -227,7 +231,7 @@ fun SecretDetailScreen(
 
                     Text(
                         text = strength.label,
-                        color = neoMint,
+                        color = strength.color, // ✅ use util color
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -244,15 +248,15 @@ fun SecretDetailScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(strength.progress)
+                            .fillMaxWidth(progress) // ✅ mapped progress
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(999.dp))
-                            .background(neoMint)
+                            .background(strength.color) // ✅ strength color
                     )
                 }
             }
 
-            Spacer(Modifier.height(14.dp))
+                Spacer(Modifier.height(14.dp))
 
             // CATEGORY
             FigmaCard(
@@ -469,20 +473,12 @@ private fun copyToClipboard(context: Context, label: String, value: String) {
     clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
 }
 
-private data class Strength(val label: String, val progress: Float)
-
-private fun passwordStrength(pw: String): Strength {
-    var score = 0
-    if (pw.length >= 8) score++
-    if (pw.length >= 12) score++
-    if (pw.any { it.isLowerCase() } && pw.any { it.isUpperCase() }) score++
-    if (pw.any { it.isDigit() }) score++
-    if (pw.any { !it.isLetterOrDigit() }) score++
-
-    return when {
-        score >= 4 -> Strength("Strong", 0.92f)
-        score == 3 -> Strength("Good", 0.70f)
-        score == 2 -> Strength("Okay", 0.50f)
-        else -> Strength("Weak", 0.28f)
+private fun strengthToProgress(score: Int): Float {
+    return when (score) {
+        0, 1, 2 -> 0.28f   // Weak
+        3, 4 -> 0.55f     // Medium
+        5 -> 0.78f        // Strong
+        else -> 0.92f     // Very Strong
     }
 }
+

@@ -20,7 +20,7 @@ fun NavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = "main"
+        startDestination = "secrets"
     ) {
         composable("main") {
             MainScreen(

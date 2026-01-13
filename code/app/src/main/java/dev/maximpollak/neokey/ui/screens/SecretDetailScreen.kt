@@ -4,6 +4,7 @@ package dev.maximpollak.neokey.ui.screens
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -11,6 +12,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
+import androidx.compose.material.icons.outlined.DeleteOutline
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
@@ -35,7 +38,7 @@ import kotlin.math.min
 @Composable
 fun SecretDetailScreen(
     secretId: Int,
-    onEdit: () -> Unit,          // kept for your NavGraph, not shown in this Figma screen
+    onEdit: () -> Unit,
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
@@ -63,10 +66,8 @@ fun SecretDetailScreen(
     val cardFill = Color.White.copy(alpha = 0.05f)
     val cardBorder = Color.White.copy(alpha = 0.08f)
 
-    val labelColor = Color.White.copy(alpha = 0.45f)
-    val valueColor = Color.White.copy(alpha = 0.95f)
-
     var revealPassword by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -78,6 +79,7 @@ fun SecretDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp)
+                .padding(bottom = 98.dp) // leave room for bottom bar
         ) {
             Spacer(Modifier.height(10.dp))
 
@@ -117,7 +119,7 @@ fun SecretDetailScreen(
             ) {
                 Text(
                     text = secret.title,
-                    color = valueColor,
+                    color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
                 )
@@ -144,7 +146,7 @@ fun SecretDetailScreen(
             ) {
                 Text(
                     text = secret.account,
-                    color = valueColor,
+                    color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
                 )
@@ -181,7 +183,7 @@ fun SecretDetailScreen(
                 val masked = "•".repeat(max(8, min(secret.password.length, 14)))
                 Text(
                     text = if (revealPassword) secret.password else masked,
-                    color = valueColor,
+                    color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
                 )
@@ -269,6 +271,106 @@ fun SecretDetailScreen(
 
             Spacer(Modifier.weight(1f))
         }
+
+        // Bottom bar (Edit + Delete) — glass style
+        BottomActionBar(
+            neoMint = neoMint,
+            cardFill = cardFill,
+            cardBorder = cardBorder,
+            onEdit = onEdit,
+            onDelete = { showDeleteDialog = true },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(horizontal = 18.dp, vertical = 14.dp)
+        )
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete entry?") },
+                text = { Text("This cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            viewModel.deleteSecret(secret)
+                            onNavigateBack()
+                        }
+                    ) { Text("Delete") }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+private fun BottomActionBar(
+    neoMint: Color,
+    cardFill: Color,
+    cardBorder: Color,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val shape = RoundedCornerShape(22.dp)
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .border(1.dp, cardBorder, shape),
+        shape = shape,
+        colors = CardDefaults.cardColors(containerColor = cardFill),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Edit
+            Button(
+                onClick = onEdit,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = neoMint,
+                    contentColor = Color.Black
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Edit,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Edit", fontWeight = FontWeight.SemiBold)
+            }
+
+            // Delete (outlined, mint border)
+            OutlinedButton(
+                onClick = onDelete,
+                modifier = Modifier.weight(1f),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, neoMint.copy(alpha = 0.55f)),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = neoMint
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.DeleteOutline,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("Delete", fontWeight = FontWeight.SemiBold)
+            }
+        }
     }
 }
 
@@ -317,7 +419,6 @@ private fun CategoryChipFigma(
     type: SecretType,
     neoMint: Color
 ) {
-    // Figma shows mint chip; we keep mint for all categories for consistency
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(14.dp))
@@ -349,7 +450,6 @@ private fun copyToClipboard(context: Context, label: String, value: String) {
 private data class Strength(val label: String, val progress: Float)
 
 private fun passwordStrength(pw: String): Strength {
-    // Simple heuristic for UI only (works offline, no libs)
     var score = 0
     if (pw.length >= 8) score++
     if (pw.length >= 12) score++

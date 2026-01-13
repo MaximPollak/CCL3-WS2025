@@ -29,6 +29,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -49,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -159,19 +161,29 @@ fun SecretsScreen(
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 18.dp)
-                .size(64.dp),
+                .size(72.dp) // slightly bigger like design
+                .border(
+                    width = 3.dp,
+                    color = Color(0xFF38FBDB),
+                    shape = CircleShape
+                )
+                .shadow(
+                    elevation = 18.dp,
+                    shape = CircleShape,
+                    clip = false
+                ),
             shape = CircleShape,
             containerColor = Color(0xFF0D121E),
-            contentColor = Color(0xFF25E6C8),
+            contentColor = Color(0xFF38FBDB),
             elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 12.dp,
-                pressedElevation = 16.dp
+                defaultElevation = 0.dp,
+                pressedElevation = 0.dp
             )
         ) {
-            Text(
-                text = "+",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Medium
+            Icon(
+                imageVector = Icons.Outlined.Add,
+                contentDescription = "Add secret",
+                modifier = Modifier.size(34.dp)
             )
         }
     }

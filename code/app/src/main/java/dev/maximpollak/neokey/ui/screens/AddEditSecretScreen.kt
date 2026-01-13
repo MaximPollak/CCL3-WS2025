@@ -35,6 +35,8 @@ fun AddEditSecretScreen(
     val context = LocalContext.current
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
 
+    var saving by remember { mutableStateOf(false) }
+
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
     val editingSecret = secrets.firstOrNull { it.id == secretId }
 
@@ -163,8 +165,16 @@ fun AddEditSecretScreen(
                     .padding(16.dp)
             ) {
                 Button(
-                    onClick = { if (step == SecretWizardStep.NotesReview) save() else nextStep() },
-                    enabled = canGoNext(),
+                    onClick = {
+                        if (step == SecretWizardStep.NotesReview) {
+                            if (saving) return@Button
+                            saving = true
+                            save()
+                        } else {
+                            nextStep()
+                        }
+                    },
+                    enabled = canGoNext() && !saving,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
@@ -177,7 +187,8 @@ fun AddEditSecretScreen(
                     shape = MaterialTheme.shapes.extraLarge
                 ) {
                     Text(
-                        text = if (step == SecretWizardStep.NotesReview)
+                        text = if (saving) "Saving..."
+                        else if (step == SecretWizardStep.NotesReview)
                             (if (isEdit) "Update Entry" else "Save Entry")
                         else "Continue"
                     )

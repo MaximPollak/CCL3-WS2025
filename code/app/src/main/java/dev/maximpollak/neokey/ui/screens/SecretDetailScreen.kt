@@ -301,13 +301,8 @@ fun SecretDetailScreen(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = {
-                    Text(
-                        text = "Delete entry?",
-                        color = MaterialTheme.colorScheme.error,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
+                title = { Text("Delete entry?") },
+                text = { Text("This cannot be undone.") },
                 confirmButton = {
                     TextButton(
                         onClick = {

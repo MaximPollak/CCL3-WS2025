@@ -3,6 +3,7 @@ package dev.maximpollak.neokey.security
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import android.util.Log
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -42,19 +43,19 @@ object CryptoManager {
     }
 
     fun encrypt(plainText: String): String {
+        Log.d("CRYPTO", "encrypt() called")
         val cipher = Cipher.getInstance(TRANSFORMATION)
         cipher.init(Cipher.ENCRYPT_MODE, getSecretKey())
-
         val iv = cipher.iv
         val encryptedBytes = cipher.doFinal(plainText.toByteArray(Charsets.UTF_8))
-
         val combined = iv + encryptedBytes
-        return Base64.encodeToString(combined, Base64.DEFAULT)
+        return Base64.encodeToString(combined, Base64.NO_WRAP)
     }
 
     fun decrypt(cipherText: String): String {
         return try {
             val combined = Base64.decode(cipherText, Base64.DEFAULT)
+            Log.d("CRYPTO", "decrypt() called")
 
             // 🔐 SAFETY CHECK
             if (combined.size <= IV_SIZE) {
@@ -73,6 +74,7 @@ object CryptoManager {
 
                 String(cipher.doFinal(encryptedBytes), Charsets.UTF_8)
             }
+
         } catch (e: Exception) {
             ""
         }

@@ -11,6 +11,8 @@ import dev.maximpollak.neokey.ui.main.MainScreen
 import dev.maximpollak.neokey.ui.screens.AddEditSecretScreen
 import dev.maximpollak.neokey.ui.screens.SecretDetailScreen
 import dev.maximpollak.neokey.ui.screens.SecretsScreen
+import dev.maximpollak.neokey.ui.screens.CategoriesScreen
+
 
 @Composable
 fun NavGraph() {
@@ -22,7 +24,29 @@ fun NavGraph() {
     ) {
         composable("main") {
             MainScreen(
-                onUnlocked = { navController.navigate("secrets") { popUpTo("main") { inclusive = true } } },
+                onUnlocked = { navController.navigate("categories") { popUpTo("main") { inclusive = true } } },
+            )
+        }
+
+        composable("categories") {
+            CategoriesScreen(
+                onCategoryClick = { key ->
+                    navController.navigate("secrets/$key")
+                }
+            )
+        }
+
+        composable(
+            route = "secrets/{category}",
+            arguments = listOf(navArgument("category") { type = NavType.StringType })
+        ) { backStack ->
+            val category = backStack.arguments?.getString("category") ?: "ALL"
+
+            SecretsScreen(
+                onAddClick = { navController.navigate("add") },
+                onSecretClick = { id -> navController.navigate("detail/$id") },
+                onBackClick = { navController.popBackStack() },
+                categoryFilter = category
             )
         }
 

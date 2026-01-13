@@ -67,8 +67,9 @@ import kotlin.math.max
 @Composable
 fun SecretsScreen(
     onAddClick: () -> Unit,
-    onBackClick: () -> Unit, // kept for compatibility with NavGraph (not used in this design)
-    onSecretClick: (Int) -> Unit
+    onBackClick: () -> Unit,
+    onSecretClick: (Int) -> Unit,
+    categoryFilter: String = "ALL"
 ) {
     val context = LocalContext.current
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
@@ -76,17 +77,32 @@ fun SecretsScreen(
 
     var query by remember { mutableStateOf("") }
     val revealed = remember { mutableStateMapOf<Int, Boolean>() }
+    val categoryLabel = remember(categoryFilter) {
+        when (categoryFilter) {
+            "ALL" -> "All"
+            else -> categoryFilter.lowercase()
+                .replaceFirstChar { it.uppercase() }
+        }
+    }
 
-    val filtered = remember(query, secrets) {
+    val filtered = remember(query, secrets, categoryFilter) {
         val q = query.trim().lowercase()
-        if (q.isEmpty()) secrets
-        else secrets.filter { s ->
+
+        val categoryFiltered = if (categoryFilter == "ALL") {
+            secrets
+        } else {
+            secrets.filter { it.category.name == categoryFilter }
+        }
+
+        if (q.isEmpty()) categoryFiltered
+        else categoryFiltered.filter { s ->
             s.title.lowercase().contains(q) ||
                     s.account.lowercase().contains(q) ||
                     s.category.name.lowercase().contains(q) ||
                     (s.note?.lowercase()?.contains(q) == true)
         }
     }
+
 
     Box(
         modifier = Modifier
@@ -120,7 +136,7 @@ fun SecretsScreen(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        text = "${filtered.size} secured entries",
+                        text = "$categoryLabel • ${filtered.size} secured entries",
                         style = MaterialTheme.typography.bodyMedium,
                         color = Color.White.copy(alpha = 0.65f)
                     )
@@ -367,3 +383,5 @@ private fun copyToClipboard(context: Context, label: String, value: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
 }
+
+

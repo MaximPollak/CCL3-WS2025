@@ -1,3 +1,4 @@
+// File: SecretDetailScreen.kt
 package dev.maximpollak.neokey.ui.screens
 
 import android.content.ClipData
@@ -9,9 +10,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.DeleteOutline
-import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material.icons.outlined.ArrowBackIosNew
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.*
@@ -23,401 +23,319 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.maximpollak.neokey.domain.model.SecretType
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import kotlin.math.max
+import kotlin.math.min
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SecretDetailScreen(
     secretId: Int,
-    onEdit: () -> Unit,
+    onEdit: () -> Unit,          // kept for your NavGraph, not shown in this Figma screen
     onNavigateBack: () -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
-    val secrets by viewModel.secrets.collectAsState()
+    val secrets by viewModel.secrets.collectAsState(initial = emptyList())
 
-    // ✅ Bind to a nullable first
     val secretNullable = secrets.firstOrNull { it.id == secretId }
-
-    // ✅ Then bind to a NON-null local once (prevents all Secret? errors)
     val secret = secretNullable ?: run {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(Color(0xFF070A12), Color(0xFF0B1020))
-                    )
-                )
-                .statusBarsPadding(),
+                .background(Brush.verticalGradient(listOf(Color(0xFF070A12), Color(0xFF0B1020)))),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Secret not found.",
-                color = Color.White.copy(alpha = 0.75f),
-                style = MaterialTheme.typography.bodyLarge
-            )
+            Text("Entry not found", color = Color.White.copy(alpha = 0.7f))
         }
         return
     }
 
-    var revealPassword by remember { mutableStateOf(false) }
-    var showDeleteDialog by remember { mutableStateOf(false) }
+    // --- Figma-like colors ---
+    val neoMint = Color(0xFF38FBDB)
+    val bgTop = Color(0xFF070A12)
+    val bgBottom = Color(0xFF0B1020)
 
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    val cardFill = Color.White.copy(alpha = 0.05f)
+    val cardBorder = Color.White.copy(alpha = 0.08f)
+
+    val labelColor = Color.White.copy(alpha = 0.45f)
+    val valueColor = Color.White.copy(alpha = 0.95f)
+
+    var revealPassword by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF070A12), Color(0xFF0B1020))
-                )
-            )
+            .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
             .statusBarsPadding()
     ) {
-        Scaffold(
-            containerColor = Color.Transparent,
-            contentColor = Color.White,
-            contentWindowInsets = WindowInsets(0, 0, 0, 0),
-            snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-            topBar = {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 10.dp),
-                    verticalAlignment = Alignment.CenterVertically
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 18.dp)
+        ) {
+            Spacer(Modifier.height(10.dp))
+
+            // Top bar: back left, title centered
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+            ) {
+                IconButton(
+                    onClick = onNavigateBack,
+                    modifier = Modifier.align(Alignment.CenterStart)
                 ) {
-                    IconButton(onClick = onNavigateBack) {
+                    Icon(
+                        imageVector = Icons.Outlined.ArrowBackIosNew,
+                        contentDescription = "Back",
+                        tint = neoMint
+                    )
+                }
+
+                Text(
+                    text = "Entry Details",
+                    color = Color.White,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            // SERVICE card
+            FigmaCard(
+                title = "SERVICE",
+                cardFill = cardFill,
+                cardBorder = cardBorder
+            ) {
+                Text(
+                    text = secret.title,
+                    color = valueColor,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // USERNAME card + copy
+            FigmaCard(
+                title = "USERNAME",
+                trailing = {
+                    IconButton(onClick = {
+                        copyToClipboard(context, "username", secret.account)
+                    }) {
                         Icon(
-                            imageVector = Icons.Outlined.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Color.White
+                            imageVector = Icons.Filled.ContentCopy,
+                            contentDescription = "Copy username",
+                            tint = neoMint
                         )
                     }
+                },
+                cardFill = cardFill,
+                cardBorder = cardBorder
+            ) {
+                Text(
+                    text = secret.account,
+                    color = valueColor,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Medium
+                )
+            }
 
-                    Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.height(14.dp))
+
+            // PASSWORD card: copy + eye + strength bar
+            FigmaCard(
+                title = "PASSWORD",
+                trailing = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = {
+                            copyToClipboard(context, "password", secret.password)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.ContentCopy,
+                                contentDescription = "Copy password",
+                                tint = neoMint
+                            )
+                        }
+                        IconButton(onClick = { revealPassword = !revealPassword }) {
+                            Icon(
+                                imageVector = if (revealPassword) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                contentDescription = "Toggle password",
+                                tint = Color.White.copy(alpha = 0.55f)
+                            )
+                        }
+                    }
+                },
+                cardFill = cardFill,
+                cardBorder = cardBorder
+            ) {
+                val masked = "•".repeat(max(8, min(secret.password.length, 14)))
+                Text(
+                    text = if (revealPassword) secret.password else masked,
+                    color = valueColor,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Medium
+                )
+
+                Spacer(Modifier.height(14.dp))
+
+                val strength = passwordStrength(secret.password)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Shield,
+                        contentDescription = null,
+                        tint = neoMint,
+                        modifier = Modifier.size(18.dp)
+                    )
+
+                    Spacer(Modifier.width(8.dp))
 
                     Text(
-                        text = "Details",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White,
+                        text = "Password Strength",
+                        color = Color.White.copy(alpha = 0.55f),
+                        style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f)
                     )
 
-                    IconButton(onClick = onEdit) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
-                            contentDescription = "Edit",
-                            tint = Color.White.copy(alpha = 0.9f)
-                        )
-                    }
-
-                    IconButton(onClick = { showDeleteDialog = true }) {
-                        Icon(
-                            imageVector = Icons.Outlined.DeleteOutline,
-                            contentDescription = "Delete",
-                            tint = Color(0xFFFF6B6B).copy(alpha = 0.9f)
-                        )
-                    }
-                }
-            }
-        ) { padding ->
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .padding(horizontal = 18.dp)
-                    .navigationBarsPadding()
-            ) {
-                Spacer(Modifier.height(8.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = secret.title,
-                            color = Color.White,
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                        Spacer(Modifier.height(6.dp))
-                        Text(
-                            text = "Created: ${formatDate(secret.createdAt)}",
-                            color = Color.White.copy(alpha = 0.55f),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-
-                    CategoryChip(type = secret.category)
+                    Text(
+                        text = strength.label,
+                        color = neoMint,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
 
-                Spacer(Modifier.height(18.dp))
+                Spacer(Modifier.height(10.dp))
 
-                InfoCard(
-                    label = "Account",
-                    value = secret.account,
-                    onCopy = {
-                        copyToClipboard(context, "account", secret.account)
-                        showSnack(scope, snackbarHostState, "Account copied")
-                    }
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                PasswordCard(
-                    password = secret.password,
-                    revealed = revealPassword,
-                    onToggleReveal = { revealPassword = !revealPassword },
-                    onCopy = {
-                        copyToClipboard(context, "password", secret.password)
-                        showSnack(scope, snackbarHostState, "Password copied")
-                    }
-                )
-
-                Spacer(Modifier.height(12.dp))
-
-                // ✅ No !! needed: bind note to local first
-                val noteText = secret.note
-                if (!noteText.isNullOrBlank()) {
-                    NoteCard(note = noteText)
-                    Spacer(Modifier.height(16.dp))
-                }
-
-                Spacer(Modifier.weight(1f))
-
-                Button(
-                    onClick = onEdit,
+                // progress bar like Figma
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(54.dp),
-                    shape = RoundedCornerShape(18.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF0D121E),
-                        contentColor = Color(0xFF25E6C8)
-                    )
+                        .height(10.dp)
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(Color.White.copy(alpha = 0.08f))
                 ) {
-                    Text("Edit entry", fontWeight = FontWeight.Medium)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(strength.progress)
+                            .fillMaxHeight()
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(neoMint)
+                    )
                 }
-
-                Spacer(Modifier.height(18.dp))
             }
-        }
 
-        if (showDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Delete entry?") },
-                text = { Text("This cannot be undone.") },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showDeleteDialog = false
-                            // ✅ secret is non-null here
-                            viewModel.deleteSecret(secret)
-                            onNavigateBack()
-                        }
-                    ) {
-                        Text("Delete", color = Color(0xFFFF6B6B))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
-            )
+            Spacer(Modifier.height(14.dp))
+
+            // CATEGORY card + chip
+            FigmaCard(
+                title = "CATEGORY",
+                cardFill = cardFill,
+                cardBorder = cardBorder
+            ) {
+                CategoryChipFigma(
+                    type = secret.category,
+                    neoMint = neoMint
+                )
+            }
+
+            Spacer(Modifier.height(14.dp))
+
+            // NOTES card
+            FigmaCard(
+                title = "NOTES",
+                cardFill = cardFill,
+                cardBorder = cardBorder
+            ) {
+                val noteText = secret.note?.takeIf { it.isNotBlank() } ?: "—"
+                Text(
+                    text = noteText,
+                    color = Color.White.copy(alpha = 0.75f),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun InfoCard(
-    label: String,
-    value: String,
-    onCopy: () -> Unit
+private fun FigmaCard(
+    title: String,
+    trailing: @Composable (() -> Unit)? = null,
+    cardFill: Color,
+    cardBorder: Color,
+    content: @Composable ColumnScope.() -> Unit
 ) {
-    val shape = RoundedCornerShape(22.dp)
-    val surface = Color.White.copy(alpha = 0.05f)
-    val border = Color.White.copy(alpha = 0.08f)
+    val shape = RoundedCornerShape(26.dp)
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(shape)
-            .border(1.dp, border, shape),
+            .border(1.dp, cardBorder, shape),
         shape = shape,
-        colors = CardDefaults.cardColors(containerColor = surface),
+        colors = CardDefaults.cardColors(containerColor = cardFill),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(18.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.Top
             ) {
                 Text(
-                    text = label,
-                    color = Color.White.copy(alpha = 0.65f),
+                    text = title,
+                    color = Color.White.copy(alpha = 0.35f),
                     style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
 
-                IconButton(onClick = onCopy) {
-                    Icon(
-                        imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = "Copy",
-                        tint = Color.White.copy(alpha = 0.75f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
+                if (trailing != null) trailing()
             }
 
-            Spacer(Modifier.height(6.dp))
-
-            Text(
-                text = value,
-                color = Color.White,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium
-            )
+            Spacer(Modifier.height(10.dp))
+            content()
         }
     }
 }
 
 @Composable
-private fun PasswordCard(
-    password: String,
-    revealed: Boolean,
-    onToggleReveal: () -> Unit,
-    onCopy: () -> Unit
+private fun CategoryChipFigma(
+    type: SecretType,
+    neoMint: Color
 ) {
-    val shape = RoundedCornerShape(22.dp)
-    val surface = Color.White.copy(alpha = 0.05f)
-    val border = Color.White.copy(alpha = 0.08f)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .border(1.dp, border, shape),
-        shape = shape,
-        colors = CardDefaults.cardColors(containerColor = surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Password",
-                    color = Color.White.copy(alpha = 0.65f),
-                    style = MaterialTheme.typography.labelLarge,
-                    modifier = Modifier.weight(1f)
-                )
-
-                IconButton(onClick = onToggleReveal) {
-                    Icon(
-                        imageVector = if (revealed) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                        contentDescription = if (revealed) "Hide password" else "Show password",
-                        tint = Color.White.copy(alpha = 0.75f),
-                        modifier = Modifier.size(22.dp)
-                    )
-                }
-
-                IconButton(onClick = onCopy) {
-                    Icon(
-                        imageVector = Icons.Filled.ContentCopy,
-                        contentDescription = "Copy password",
-                        tint = Color.White.copy(alpha = 0.75f),
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(6.dp))
-
-            Text(
-                text = if (revealed) password else "•".repeat(maxOf(8, minOf(password.length, 14))),
-                color = Color.White,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-@Composable
-private fun NoteCard(note: String) {
-    val shape = RoundedCornerShape(22.dp)
-    val surface = Color.White.copy(alpha = 0.05f)
-    val border = Color.White.copy(alpha = 0.08f)
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(shape)
-            .border(1.dp, border, shape),
-        shape = shape,
-        colors = CardDefaults.cardColors(containerColor = surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-    ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                text = "Note",
-                color = Color.White.copy(alpha = 0.65f),
-                style = MaterialTheme.typography.labelLarge
-            )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = note,
-                color = Color.White.copy(alpha = 0.9f),
-                style = MaterialTheme.typography.bodyMedium
-            )
-        }
-    }
-}
-
-@Composable
-private fun CategoryChip(type: SecretType) {
-    val (bg, fg, label) = when (type) {
-        SecretType.WORK -> Triple(Color(0xFF0E3D3A), Color(0xFF25E6C8), "Work")
-        SecretType.EDUCATION -> Triple(Color(0xFF3A1041), Color(0xFFDA57FF), "Education")
-        SecretType.WIFI -> Triple(Color(0xFF102A43), Color(0xFF6EC6FF), "WiFi")
-        SecretType.PRIVATE -> Triple(Color(0xFF3A1A10), Color(0xFFFF9B6A), "Private")
-        SecretType.ELSE -> Triple(Color(0xFF2A2F3A), Color(0xFFB9C2D3), "Else")
-    }
-
+    // Figma shows mint chip; we keep mint for all categories for consistency
     Box(
         modifier = Modifier
-            .clip(RoundedCornerShape(999.dp))
-            .background(bg.copy(alpha = 0.95f))
-            .border(1.dp, fg.copy(alpha = 0.35f), RoundedCornerShape(999.dp))
-            .padding(horizontal = 12.dp, vertical = 6.dp),
+            .clip(RoundedCornerShape(14.dp))
+            .background(neoMint.copy(alpha = 0.12f))
+            .border(1.dp, neoMint.copy(alpha = 0.35f), RoundedCornerShape(14.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = label,
-            color = fg,
-            style = MaterialTheme.typography.labelMedium,
+            text = when (type) {
+                SecretType.WORK -> "Work"
+                SecretType.EDUCATION -> "Education"
+                SecretType.WIFI -> "WiFi"
+                SecretType.PRIVATE -> "Private"
+                SecretType.ELSE -> "Else"
+            },
+            color = neoMint,
+            style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium
         )
     }
@@ -428,11 +346,21 @@ private fun copyToClipboard(context: Context, label: String, value: String) {
     clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
 }
 
-private fun formatDate(timestamp: Long): String {
-    val sdf = SimpleDateFormat("dd MMM yyyy • HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
-}
+private data class Strength(val label: String, val progress: Float)
 
-private fun showSnack(scope: CoroutineScope, host: SnackbarHostState, message: String) {
-    scope.launch { host.showSnackbar(message) }
+private fun passwordStrength(pw: String): Strength {
+    // Simple heuristic for UI only (works offline, no libs)
+    var score = 0
+    if (pw.length >= 8) score++
+    if (pw.length >= 12) score++
+    if (pw.any { it.isLowerCase() } && pw.any { it.isUpperCase() }) score++
+    if (pw.any { it.isDigit() }) score++
+    if (pw.any { !it.isLetterOrDigit() }) score++
+
+    return when {
+        score >= 4 -> Strength("Strong", 0.92f)
+        score == 3 -> Strength("Good", 0.70f)
+        score == 2 -> Strength("Okay", 0.50f)
+        else -> Strength("Weak", 0.28f)
+    }
 }

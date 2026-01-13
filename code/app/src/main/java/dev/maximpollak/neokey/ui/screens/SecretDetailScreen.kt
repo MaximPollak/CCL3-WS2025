@@ -43,19 +43,12 @@ fun SecretDetailScreen(
 ) {
     val context = LocalContext.current
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
-    val secrets by viewModel.secrets.collectAsState(initial = emptyList())
 
-    val secretNullable = secrets.firstOrNull { it.id == secretId }
-    val secret = secretNullable ?: run {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(Color(0xFF070A12), Color(0xFF0B1020)))),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Entry not found", color = Color.White.copy(alpha = 0.7f))
-        }
-        return
+    val secret by viewModel.selectedSecret.collectAsState()
+
+    // load ONLY by id
+    LaunchedEffect(secretId) {
+        viewModel.loadSecretById(secretId)
     }
 
     // --- Figma-like colors ---
@@ -69,6 +62,23 @@ fun SecretDetailScreen(
     var revealPassword by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
+    val secretValue = secret
+    if (secretValue == null) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
+                .statusBarsPadding(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = "Loading…",
+                color = Color.White.copy(alpha = 0.70f)
+            )
+        }
+        return
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -79,7 +89,7 @@ fun SecretDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp)
-                .padding(bottom = 98.dp) // leave room for bottom bar
+                .padding(bottom = 98.dp) // room for bottom bar
         ) {
             Spacer(Modifier.height(10.dp))
 
@@ -90,7 +100,10 @@ fun SecretDetailScreen(
                     .height(56.dp)
             ) {
                 IconButton(
-                    onClick = onNavigateBack,
+                    onClick = {
+                        viewModel.clearSelectedSecret()
+                        onNavigateBack()
+                    },
                     modifier = Modifier.align(Alignment.CenterStart)
                 ) {
                     Icon(
@@ -111,14 +124,14 @@ fun SecretDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // SERVICE card
+            // SERVICE
             FigmaCard(
                 title = "SERVICE",
                 cardFill = cardFill,
                 cardBorder = cardBorder
             ) {
                 Text(
-                    text = secret.title,
+                    text = secretValue.title,
                     color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
@@ -127,12 +140,12 @@ fun SecretDetailScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            // USERNAME card + copy
+            // USERNAME
             FigmaCard(
                 title = "USERNAME",
                 trailing = {
                     IconButton(onClick = {
-                        copyToClipboard(context, "username", secret.account)
+                        copyToClipboard(context, "username", secretValue.account)
                     }) {
                         Icon(
                             imageVector = Icons.Filled.ContentCopy,
@@ -145,7 +158,7 @@ fun SecretDetailScreen(
                 cardBorder = cardBorder
             ) {
                 Text(
-                    text = secret.account,
+                    text = secretValue.account,
                     color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
@@ -154,13 +167,13 @@ fun SecretDetailScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            // PASSWORD card: copy + eye + strength bar
+            // PASSWORD + strength
             FigmaCard(
                 title = "PASSWORD",
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = {
-                            copyToClipboard(context, "password", secret.password)
+                            copyToClipboard(context, "password", secretValue.password)
                         }) {
                             Icon(
                                 imageVector = Icons.Filled.ContentCopy,
@@ -180,9 +193,10 @@ fun SecretDetailScreen(
                 cardFill = cardFill,
                 cardBorder = cardBorder
             ) {
-                val masked = "•".repeat(max(8, min(secret.password.length, 14)))
+                val masked = "•".repeat(max(8, min(secretValue.password.length, 14)))
+
                 Text(
-                    text = if (revealPassword) secret.password else masked,
+                    text = if (revealPassword) secretValue.password else masked,
                     color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
@@ -190,7 +204,7 @@ fun SecretDetailScreen(
 
                 Spacer(Modifier.height(14.dp))
 
-                val strength = passwordStrength(secret.password)
+                val strength = passwordStrength(secretValue.password)
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically
@@ -221,7 +235,6 @@ fun SecretDetailScreen(
 
                 Spacer(Modifier.height(10.dp))
 
-                // progress bar like Figma
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -241,27 +254,27 @@ fun SecretDetailScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            // CATEGORY card + chip
+            // CATEGORY
             FigmaCard(
                 title = "CATEGORY",
                 cardFill = cardFill,
                 cardBorder = cardBorder
             ) {
                 CategoryChipFigma(
-                    type = secret.category,
+                    type = secretValue.category,
                     neoMint = neoMint
                 )
             }
 
             Spacer(Modifier.height(14.dp))
 
-            // NOTES card
+            // NOTES
             FigmaCard(
                 title = "NOTES",
                 cardFill = cardFill,
                 cardBorder = cardBorder
             ) {
-                val noteText = secret.note?.takeIf { it.isNotBlank() } ?: "—"
+                val noteText = secretValue.note?.takeIf { it.isNotBlank() } ?: "—"
                 Text(
                     text = noteText,
                     color = Color.White.copy(alpha = 0.75f),
@@ -272,7 +285,7 @@ fun SecretDetailScreen(
             Spacer(Modifier.weight(1f))
         }
 
-        // Bottom bar (Edit + Delete) — glass style
+        // Bottom bar (Edit + Delete)
         BottomActionBar(
             neoMint = neoMint,
             cardFill = cardFill,
@@ -294,7 +307,8 @@ fun SecretDetailScreen(
                     TextButton(
                         onClick = {
                             showDeleteDialog = false
-                            viewModel.deleteSecret(secret)
+                            viewModel.deleteSecret(secretValue)
+                            viewModel.clearSelectedSecret()
                             onNavigateBack()
                         }
                     ) { Text("Delete") }
@@ -333,7 +347,6 @@ private fun BottomActionBar(
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Edit
             Button(
                 onClick = onEdit,
                 modifier = Modifier.weight(1f),
@@ -352,7 +365,6 @@ private fun BottomActionBar(
                 Text("Edit", fontWeight = FontWeight.SemiBold)
             }
 
-            // Delete (outlined, mint border)
             OutlinedButton(
                 onClick = onDelete,
                 modifier = Modifier.weight(1f),

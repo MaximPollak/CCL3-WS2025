@@ -301,8 +301,13 @@ fun SecretDetailScreen(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text("Delete entry?") },
-                text = { Text("This cannot be undone.") },
+                title = {
+                    Text(
+                        text = "Delete entry?",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -310,8 +315,16 @@ fun SecretDetailScreen(
                             viewModel.deleteSecret(secretValue)
                             viewModel.clearSelectedSecret()
                             onNavigateBack()
-                        }
-                    ) { Text("Delete") }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) {
+                        Text(
+                            text = "Delete",
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
@@ -369,12 +382,14 @@ private fun BottomActionBar(
                 onClick = onDelete,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(1.dp, neoMint.copy(alpha = 0.55f)),
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
+                ),
                 colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = neoMint
+                    contentColor = MaterialTheme.colorScheme.error
                 )
-            ) {
-                Icon(
+            ) { Icon(
                     imageVector = Icons.Outlined.DeleteOutline,
                     contentDescription = null,
                     modifier = Modifier.size(18.dp)

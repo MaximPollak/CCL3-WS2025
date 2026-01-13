@@ -9,6 +9,7 @@ fun SecretEntity.toDomain(): Secret {
         "WORK" -> SecretType.WORK
         "WIFI" -> SecretType.WIFI
         "EDUCATION" -> SecretType.EDUCATION
+        "PRIVATE" -> SecretType.PRIVATE
         else -> SecretType.ELSE
     }
 

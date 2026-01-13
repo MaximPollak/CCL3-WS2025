@@ -1,4 +1,3 @@
-// File: SecretsViewModel.kt
 package dev.maximpollak.neokey.viewmodel
 
 import androidx.lifecycle.ViewModel
@@ -8,7 +7,6 @@ import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.security.CryptoManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class SecretsViewModel(
@@ -18,41 +16,42 @@ class SecretsViewModel(
     private val _secrets = MutableStateFlow<List<Secret>>(emptyList())
     val secrets: StateFlow<List<Secret>> = _secrets
 
+    private val _selectedSecret = MutableStateFlow<Secret?>(null)
+    val selectedSecret: StateFlow<Secret?> = _selectedSecret
+
     init {
         viewModelScope.launch {
-            repository.getAllSecrets()
-                .map { list ->
-                    list.map { secret ->
-                        secret.copy(
-                            password = decryptOrFallback(secret.password, fallback = "Decryption failed"),
-                            note = secret.note?.let { decryptOrFallback(it, fallback = null) }
-                        )
-                    }
-                }
-                .collect { decryptedList ->
-                    _secrets.value = decryptedList
-                }
+            // Repo already decrypts + does work off main thread (flowOn in repo)
+            repository.getAllSecrets().collect { list ->
+                _secrets.value = list
+            }
         }
     }
 
+    fun loadSecretById(id: Int) = viewModelScope.launch {
+        _selectedSecret.value = repository.getSecretById(id)
+    }
+
+    fun clearSelectedSecret() {
+        _selectedSecret.value = null
+    }
+
     fun addSecret(secret: Secret) = viewModelScope.launch {
-        val encrypted = secret.copy(
-            password = CryptoManager.encrypt(secret.password),
-            note = secret.note?.let { CryptoManager.encrypt(it) }
-        )
-        repository.insertSecret(encrypted)
+        // Repo encrypts
+        repository.insertSecret(secret)
     }
 
     fun updateSecret(secret: Secret) = viewModelScope.launch {
-        val encrypted = secret.copy(
-            password = CryptoManager.encrypt(secret.password),
-            note = secret.note?.let { CryptoManager.encrypt(it) }
-        )
-        repository.updateSecret(encrypted)
+        // Repo encrypts
+        repository.updateSecret(secret)
     }
 
     fun deleteSecret(secret: Secret) = viewModelScope.launch {
         repository.deleteSecret(secret)
+        // Optional: also clear it so UI doesn't show old state
+        if (_selectedSecret.value?.id == secret.id) {
+            _selectedSecret.value = null
+        }
     }
 
     private fun decryptOrFallback(value: String, fallback: String?): String {
@@ -63,3 +62,4 @@ class SecretsViewModel(
         }
     }
 }
+

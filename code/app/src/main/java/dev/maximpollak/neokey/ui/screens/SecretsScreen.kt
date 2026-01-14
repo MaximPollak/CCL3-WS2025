@@ -26,12 +26,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.ArrowBackIosNew
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material.icons.outlined.ArrowBackIosNew
-import androidx.compose.material.icons.filled.ContentCopy
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -62,9 +62,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.domain.model.SecretType
+import dev.maximpollak.neokey.security.CryptoManager
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-import kotlin.math.max
 
 @Composable
 fun SecretsScreen(
@@ -78,33 +78,34 @@ fun SecretsScreen(
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
 
     var query by remember { mutableStateOf("") }
+
+    // which entries are currently revealed
     val revealed = remember { mutableStateMapOf<Int, Boolean>() }
+
+    // decrypted plaintext cached ONLY while revealed (removed on hide)
+    val revealedPassword = remember { mutableStateMapOf<Int, String>() }
+
     val categoryLabel = remember(categoryFilter) {
         when (categoryFilter) {
             "ALL" -> "All"
-            else -> categoryFilter.lowercase()
-                .replaceFirstChar { it.uppercase() }
+            else -> categoryFilter.lowercase().replaceFirstChar { it.uppercase() }
         }
     }
 
     val filtered = remember(query, secrets, categoryFilter) {
         val q = query.trim().lowercase()
 
-        val categoryFiltered = if (categoryFilter == "ALL") {
-            secrets
-        } else {
-            secrets.filter { it.category.name == categoryFilter }
-        }
+        val categoryFiltered = if (categoryFilter == "ALL") secrets
+        else secrets.filter { it.category.name == categoryFilter }
 
         if (q.isEmpty()) categoryFiltered
         else categoryFiltered.filter { s ->
             s.title.lowercase().contains(q) ||
-                    s.account.lowercase().contains(q) ||
+                    s.account.lowercase().contains(q) || // NOTE: account is encrypted now, search won't be useful unless you decrypt or store a searchable field
                     s.category.name.lowercase().contains(q) ||
-                    (s.note?.lowercase()?.contains(q) == true)
+                    (s.note?.lowercase()?.contains(q) == true) // NOTE: note is encrypted now too
         }
     }
-
 
     Box(
         modifier = Modifier
@@ -128,12 +129,11 @@ fun SecretsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Back button
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBackIosNew,
                         contentDescription = "Back",
-                        tint = Color(0xFF38FBDB) // NeoMint
+                        tint = Color(0xFF38FBDB)
                     )
                 }
 
@@ -171,12 +171,30 @@ fun SecretsScreen(
             ) {
                 items(filtered, key = { it.id }) { secret ->
                     val isRevealed = revealed[secret.id] == true
+                    val displayPassword = if (isRevealed) {
+                        revealedPassword[secret.id] ?: MASK
+                    } else MASK
 
                     SecretListCard(
                         secret = secret,
                         revealed = isRevealed,
-                        onToggleReveal = { revealed[secret.id] = !isRevealed },
-                        onCopyPassword = { copyToClipboard(context, "password", secret.password) },
+                        displayPassword = displayPassword,
+                        onToggleReveal = {
+                            val currentlyRevealed = revealed[secret.id] == true
+                            if (!currentlyRevealed) {
+                                // reveal -> decrypt now, store plaintext only in RAM
+                                revealedPassword[secret.id] = CryptoManager.decrypt(secret.password)
+                                revealed[secret.id] = true
+                            } else {
+                                // hide -> forget plaintext
+                                revealedPassword.remove(secret.id)
+                                revealed[secret.id] = false
+                            }
+                        },
+                        onCopyPassword = {
+                            val plain = CryptoManager.decrypt(secret.password)
+                            copyToClipboard(context, "password", plain)
+                        },
                         onClick = { onSecretClick(secret.id) }
                     )
                 }
@@ -189,7 +207,7 @@ fun SecretsScreen(
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 18.dp)
-                .size(72.dp) // slightly bigger like design
+                .size(72.dp)
                 .border(
                     width = 3.dp,
                     color = Color(0xFF38FBDB),
@@ -260,6 +278,7 @@ private fun SearchPill(
 private fun SecretListCard(
     secret: Secret,
     revealed: Boolean,
+    displayPassword: String,
     onToggleReveal: () -> Unit,
     onCopyPassword: () -> Unit,
     onClick: () -> Unit
@@ -307,22 +326,15 @@ private fun SecretListCard(
 
             Spacer(Modifier.height(4.dp))
 
-            Text(
-                text = secret.account,
-                color = Color.White.copy(alpha = 0.62f),
-                style = MaterialTheme.typography.bodyMedium,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            Spacer(Modifier.height(10.dp))
+            // NOTE: account is encrypted now, so this will look like Base64.
+            // If you want account readable without unlock, store it unencrypted or decrypt-on-demand too.
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (revealed) secret.password else dotMask(secret.password),
+                    text = displayPassword,
                     color = Color.White.copy(alpha = 0.70f),
                     style = MaterialTheme.typography.bodyMedium,
                     maxLines = 1,
@@ -386,14 +398,9 @@ private fun SecretType.accentColor(): Color = when (this) {
     SecretType.ELSE -> Color(0xFFB9C2D3)
 }
 
-private fun dotMask(password: String): String {
-    val len = max(8, minOf(password.length, 14))
-    return "•".repeat(len)
-}
+private const val MASK = "••••••••"
 
 private fun copyToClipboard(context: Context, label: String, value: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
 }
-
-

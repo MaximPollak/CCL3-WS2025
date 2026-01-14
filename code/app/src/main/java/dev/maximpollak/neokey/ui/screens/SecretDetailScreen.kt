@@ -29,10 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.maximpollak.neokey.domain.model.SecretType
+import dev.maximpollak.neokey.security.CryptoManager
+import dev.maximpollak.neokey.utils.calculatePasswordStrength
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-import dev.maximpollak.neokey.utils.calculatePasswordStrength
-
 import kotlin.math.max
 import kotlin.math.min
 
@@ -48,16 +48,14 @@ fun SecretDetailScreen(
 
     val secret by viewModel.selectedSecret.collectAsState()
 
-    // load ONLY by id
     LaunchedEffect(secretId) {
         viewModel.loadSecretById(secretId)
     }
 
-    // --- Figma-like colors ---
+    // --- Colors ---
     val neoMint = Color(0xFF38FBDB)
     val bgTop = Color(0xFF070A12)
     val bgBottom = Color(0xFF0B1020)
-
     val cardFill = Color.White.copy(alpha = 0.05f)
     val cardBorder = Color.White.copy(alpha = 0.08f)
 
@@ -73,13 +71,25 @@ fun SecretDetailScreen(
                 .statusBarsPadding(),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "Loading…",
-                color = Color.White.copy(alpha = 0.70f)
-            )
+            Text("Loading…", color = Color.White.copy(alpha = 0.70f))
         }
         return
     }
+
+    // ✅ Decrypt immediately in detail screen
+    val decryptedUsername = remember(secretValue.id, secretValue.account) {
+        CryptoManager.decrypt(secretValue.account)
+    }
+    val decryptedPassword = remember(secretValue.id, secretValue.password) {
+        CryptoManager.decrypt(secretValue.password)
+    }
+    val decryptedNote = remember(secretValue.id, secretValue.note) {
+        secretValue.note?.let { CryptoManager.decrypt(it) }
+    }
+
+    // Strength uses plaintext now (since we decrypt immediately here)
+    val strength = calculatePasswordStrength(decryptedPassword)
+    val progress = strengthToProgress(strength.score)
 
     Box(
         modifier = Modifier
@@ -91,11 +101,11 @@ fun SecretDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp)
-                .padding(bottom = 98.dp) // room for bottom bar
+                .padding(bottom = 98.dp)
         ) {
             Spacer(Modifier.height(10.dp))
 
-            // Top bar: back left, title centered
+            // Top bar
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -127,11 +137,7 @@ fun SecretDetailScreen(
             Spacer(Modifier.height(16.dp))
 
             // SERVICE
-            FigmaCard(
-                title = "SERVICE",
-                cardFill = cardFill,
-                cardBorder = cardBorder
-            ) {
+            FigmaCard("SERVICE", cardFill = cardFill, cardBorder = cardBorder) {
                 Text(
                     text = secretValue.title,
                     color = Color.White.copy(alpha = 0.95f),
@@ -146,21 +152,15 @@ fun SecretDetailScreen(
             FigmaCard(
                 title = "USERNAME",
                 trailing = {
-                    IconButton(onClick = {
-                        copyToClipboard(context, "username", secretValue.account)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Filled.ContentCopy,
-                            contentDescription = "Copy username",
-                            tint = neoMint
-                        )
+                    IconButton(onClick = { copyToClipboard(context, "username", decryptedUsername) }) {
+                        Icon(Icons.Filled.ContentCopy, contentDescription = "Copy username", tint = neoMint)
                     }
                 },
                 cardFill = cardFill,
                 cardBorder = cardBorder
             ) {
                 Text(
-                    text = secretValue.account,
+                    text = decryptedUsername,
                     color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
@@ -169,19 +169,13 @@ fun SecretDetailScreen(
 
             Spacer(Modifier.height(14.dp))
 
-            // PASSWORD + strength
+            // PASSWORD
             FigmaCard(
                 title = "PASSWORD",
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = {
-                            copyToClipboard(context, "password", secretValue.password)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Filled.ContentCopy,
-                                contentDescription = "Copy password",
-                                tint = neoMint
-                            )
+                        IconButton(onClick = { copyToClipboard(context, "password", decryptedPassword) }) {
+                            Icon(Icons.Filled.ContentCopy, contentDescription = "Copy password", tint = neoMint)
                         }
                         IconButton(onClick = { revealPassword = !revealPassword }) {
                             Icon(
@@ -195,19 +189,16 @@ fun SecretDetailScreen(
                 cardFill = cardFill,
                 cardBorder = cardBorder
             ) {
-                val masked = "•".repeat(max(8, min(secretValue.password.length, 14)))
+                val masked = "•".repeat(max(8, min(decryptedPassword.length, 14)))
 
                 Text(
-                    text = if (revealPassword) secretValue.password else masked,
+                    text = if (revealPassword) decryptedPassword else masked,
                     color = Color.White.copy(alpha = 0.95f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
                 )
 
                 Spacer(Modifier.height(14.dp))
-
-                val strength = calculatePasswordStrength(secretValue.password)
-                val progress = strengthToProgress(strength.score)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -216,7 +207,7 @@ fun SecretDetailScreen(
                     Icon(
                         imageVector = Icons.Outlined.Shield,
                         contentDescription = null,
-                        tint = strength.color, // ✅ use util color
+                        tint = strength.color,
                         modifier = Modifier.size(18.dp)
                     )
 
@@ -231,7 +222,7 @@ fun SecretDetailScreen(
 
                     Text(
                         text = strength.label,
-                        color = strength.color, // ✅ use util color
+                        color = strength.color,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -248,37 +239,26 @@ fun SecretDetailScreen(
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(progress) // ✅ mapped progress
+                            .fillMaxWidth(progress)
                             .fillMaxHeight()
                             .clip(RoundedCornerShape(999.dp))
-                            .background(strength.color) // ✅ strength color
+                            .background(strength.color)
                     )
                 }
             }
 
-                Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(14.dp))
 
             // CATEGORY
-            FigmaCard(
-                title = "CATEGORY",
-                cardFill = cardFill,
-                cardBorder = cardBorder
-            ) {
-                CategoryChipFigma(
-                    type = secretValue.category,
-                    neoMint = neoMint
-                )
+            FigmaCard("CATEGORY", cardFill = cardFill, cardBorder = cardBorder) {
+                CategoryChipFigma(type = secretValue.category, neoMint = neoMint)
             }
 
             Spacer(Modifier.height(14.dp))
 
             // NOTES
-            FigmaCard(
-                title = "NOTES",
-                cardFill = cardFill,
-                cardBorder = cardBorder
-            ) {
-                val noteText = secretValue.note?.takeIf { it.isNotBlank() } ?: "—"
+            FigmaCard("NOTES", cardFill = cardFill, cardBorder = cardBorder) {
+                val noteText = decryptedNote?.takeIf { it.isNotBlank() } ?: "—"
                 Text(
                     text = noteText,
                     color = Color.White.copy(alpha = 0.75f),
@@ -289,7 +269,6 @@ fun SecretDetailScreen(
             Spacer(Modifier.weight(1f))
         }
 
-        // Bottom bar (Edit + Delete)
         BottomActionBar(
             neoMint = neoMint,
             cardFill = cardFill,
@@ -315,14 +294,9 @@ fun SecretDetailScreen(
                             viewModel.clearSelectedSecret()
                             onNavigateBack()
                         },
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        )
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
                     ) {
-                        Text(
-                            text = "Delete",
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text("Delete", fontWeight = FontWeight.SemiBold)
                     }
                 },
                 dismissButton = {
@@ -363,16 +337,9 @@ private fun BottomActionBar(
                 onClick = onEdit,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = neoMint,
-                    contentColor = Color.Black
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = neoMint, contentColor = Color.Black)
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
+                Icon(Icons.Outlined.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Edit", fontWeight = FontWeight.SemiBold)
             }
@@ -381,18 +348,10 @@ private fun BottomActionBar(
                 onClick = onDelete,
                 modifier = Modifier.weight(1f),
                 shape = RoundedCornerShape(16.dp),
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.error.copy(alpha = 0.6f)
-                ),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.error
-                )
-            ) { Icon(
-                    imageVector = Icons.Outlined.DeleteOutline,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.6f)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error)
+            ) {
+                Icon(Icons.Outlined.DeleteOutline, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(8.dp))
                 Text("Delete", fontWeight = FontWeight.SemiBold)
             }
@@ -430,8 +389,7 @@ private fun FigmaCard(
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.weight(1f)
                 )
-
-                if (trailing != null) trailing()
+                trailing?.invoke()
             }
 
             Spacer(Modifier.height(10.dp))
@@ -475,10 +433,9 @@ private fun copyToClipboard(context: Context, label: String, value: String) {
 
 private fun strengthToProgress(score: Int): Float {
     return when (score) {
-        0, 1, 2 -> 0.28f   // Weak
-        3, 4 -> 0.55f     // Medium
-        5 -> 0.78f        // Strong
-        else -> 0.92f     // Very Strong
+        0, 1, 2 -> 0.28f
+        3, 4 -> 0.55f
+        5 -> 0.78f
+        else -> 0.92f
     }
 }
-

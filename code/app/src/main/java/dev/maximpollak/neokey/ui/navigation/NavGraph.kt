@@ -50,7 +50,7 @@ fun NavGraph() {
 
     NavHost(
         navController = navController,
-        startDestination = "main"
+        startDestination = "categories"
     ) {
         composable("main") {
             MainScreen(

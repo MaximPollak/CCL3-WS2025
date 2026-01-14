@@ -11,6 +11,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -161,6 +162,7 @@ fun AddEditSecretScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .imePadding()              // <-- moves it up when keyboard shows
                     .navigationBarsPadding()
                     .padding(16.dp)
             ) {

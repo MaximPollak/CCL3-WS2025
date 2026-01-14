@@ -2,7 +2,7 @@
 
 package dev.maximpollak.neokey.ui.screens
 
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -11,7 +11,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,11 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.domain.model.SecretType
+import dev.maximpollak.neokey.security.CryptoManager
 import dev.maximpollak.neokey.utils.calculatePasswordStrength
 import dev.maximpollak.neokey.utils.generatePassword
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-import androidx.compose.foundation.BorderStroke
 
 enum class SecretWizardStep { Service, Password, Category, NotesReview }
 
@@ -38,19 +37,47 @@ fun AddEditSecretScreen(
 
     var saving by remember { mutableStateOf(false) }
 
-    val secrets by viewModel.secrets.collectAsState(initial = emptyList())
-    val editingSecret = secrets.firstOrNull { it.id == secretId }
+    // ✅ Edit mode should NOT rely on the list (which may be encrypted now).
+    // Load the single secret and decrypt for prefill.
+    val selectedSecret by viewModel.selectedSecret.collectAsState()
+
+    val isEdit = secretId != null
+
+    LaunchedEffect(secretId) {
+        if (secretId != null) viewModel.loadSecretById(secretId)
+        else viewModel.clearSelectedSecret()
+    }
 
     var step by remember { mutableStateOf(SecretWizardStep.Service) }
 
-    var category by remember(editingSecret) { mutableStateOf(editingSecret?.category ?: SecretType.ELSE) }
-    var title by remember(editingSecret) { mutableStateOf(editingSecret?.title ?: "") }
-    var account by remember(editingSecret) { mutableStateOf(editingSecret?.account ?: "") }
-    var password by remember(editingSecret) { mutableStateOf(editingSecret?.password ?: "") }
-    var note by remember(editingSecret) { mutableStateOf(editingSecret?.note ?: "") }
+    var category by remember { mutableStateOf(SecretType.ELSE) }
+    var title by remember { mutableStateOf("") }
+    var account by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var note by remember { mutableStateOf("") }
+
+    // ✅ Only initialize fields once after secret is loaded
+    var initialized by remember(secretId) { mutableStateOf(false) }
+
+    LaunchedEffect(selectedSecret, secretId) {
+        if (secretId == null) {
+            initialized = true
+            return@LaunchedEffect
+        }
+
+        val s = selectedSecret ?: return@LaunchedEffect
+        if (initialized) return@LaunchedEffect
+
+        category = s.category
+        title = s.title // title is typically not encrypted in your model
+        account = CryptoManager.decrypt(s.account).trim()
+        password = CryptoManager.decrypt(s.password)
+        note = (s.note?.let { CryptoManager.decrypt(it) } ?: "").trim()
+
+        initialized = true
+    }
 
     val passwordStrength = calculatePasswordStrength(password)
-    val isEdit = editingSecret != null
 
     val stepIndex = when (step) {
         SecretWizardStep.Service -> 1
@@ -93,15 +120,18 @@ fun AddEditSecretScreen(
     }
 
     fun save() {
+        val existing = selectedSecret
+
         val secret = Secret(
-            id = editingSecret?.id ?: 0,
+            id = existing?.id ?: 0,
             title = title.trim(),
-            account = account.trim(),
-            password = password,
+            account = account.trim(),          // repo will encrypt
+            password = password,              // repo will encrypt
             category = category,
             note = note.trim().takeIf { it.isNotBlank() },
-            createdAt = editingSecret?.createdAt ?: System.currentTimeMillis()
+            createdAt = existing?.createdAt ?: System.currentTimeMillis()
         )
+
         if (isEdit) viewModel.updateSecret(secret) else viewModel.addSecret(secret)
         onNavigateBack()
     }
@@ -109,7 +139,6 @@ fun AddEditSecretScreen(
     Scaffold(
         containerColor = Color(0xFF0E0E12),
         topBar = {
-            // Match mock: back arrow + centered title + step text + progress bar
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -158,11 +187,10 @@ fun AddEditSecretScreen(
             }
         },
         bottomBar = {
-            // Match mock: single big button fixed at bottom
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .imePadding()              // <-- moves it up when keyboard shows
+                    .imePadding()
                     .navigationBarsPadding()
                     .padding(16.dp)
             ) {
@@ -198,7 +226,6 @@ fun AddEditSecretScreen(
             }
         }
     ) { padding ->
-
         Column(
             modifier = Modifier
                 .padding(padding)
@@ -243,8 +270,6 @@ fun AddEditSecretScreen(
                         colors = neoFieldColors()
                     )
 
-                    // Optional: show strength bar here if you want (your mock step doesn’t show it)
-                    // If you DO want it, keep this:
                     Spacer(Modifier.height(6.dp))
                     LinearProgressIndicator(
                         progress = passwordStrength.score.toFloat().div(6f),
@@ -278,7 +303,6 @@ fun AddEditSecretScreen(
                 SecretWizardStep.Category -> {
                     Text("Select Category", color = Color.White.copy(alpha = 0.75f))
 
-                    // Your enum has only these 5 categories (no Finance/Social/Personal in code)
                     SecretType.values().forEach { c ->
                         val selected = c == category
                         OutlinedButton(
@@ -288,12 +312,8 @@ fun AddEditSecretScreen(
                                 containerColor = if (selected) Color(0xFF0E3D3A) else Color.White.copy(alpha = 0.05f),
                                 contentColor = if (selected) Color(0xFF25E6C8) else Color.White.copy(alpha = 0.70f)
                             ),
-                            border = ButtonDefaults.outlinedButtonBorder.copy(
-                                width = 1.dp
-                            )
-                        ) {
-                            Text(c.prettyLabel())
-                        }
+                            border = ButtonDefaults.outlinedButtonBorder.copy(width = 1.dp)
+                        ) { Text(c.prettyLabel()) }
                     }
                 }
 
@@ -312,7 +332,7 @@ fun AddEditSecretScreen(
                 }
             }
 
-            Spacer(Modifier.height(90.dp)) // keep content above bottom button
+            Spacer(Modifier.height(90.dp))
         }
     }
 }

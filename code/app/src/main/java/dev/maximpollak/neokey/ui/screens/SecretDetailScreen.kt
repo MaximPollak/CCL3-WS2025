@@ -8,7 +8,9 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.outlined.ArrowBackIosNew
@@ -78,7 +80,7 @@ fun SecretDetailScreen(
 
     // ✅ Decrypt immediately in detail screen
     val decryptedUsername = remember(secretValue.id, secretValue.account) {
-        CryptoManager.decrypt(secretValue.account)
+        CryptoManager.decrypt(secretValue.account).trim()
     }
     val decryptedPassword = remember(secretValue.id, secretValue.password) {
         CryptoManager.decrypt(secretValue.password)
@@ -87,7 +89,8 @@ fun SecretDetailScreen(
         secretValue.note?.let { CryptoManager.decrypt(it) }
     }
 
-    // Strength uses plaintext now (since we decrypt immediately here)
+    val hasUsername = decryptedUsername.isNotBlank()
+
     val strength = calculatePasswordStrength(decryptedPassword)
     val progress = strengthToProgress(strength.score)
 
@@ -97,11 +100,13 @@ fun SecretDetailScreen(
             .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
             .statusBarsPadding()
     ) {
+        // ✅ scrollable content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp)
-                .padding(bottom = 98.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 140.dp) // ✅ space so notes don't hide behind bottom bar
         ) {
             Spacer(Modifier.height(10.dp))
 
@@ -152,16 +157,23 @@ fun SecretDetailScreen(
             FigmaCard(
                 title = "USERNAME",
                 trailing = {
-                    IconButton(onClick = { copyToClipboard(context, "username", decryptedUsername) }) {
-                        Icon(Icons.Filled.ContentCopy, contentDescription = "Copy username", tint = neoMint)
+                    IconButton(
+                        onClick = { if (hasUsername) copyToClipboard(context, "username", decryptedUsername) },
+                        enabled = hasUsername
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.ContentCopy,
+                            contentDescription = "Copy username",
+                            tint = neoMint.copy(alpha = if (hasUsername) 1f else 0.25f)
+                        )
                     }
                 },
                 cardFill = cardFill,
                 cardBorder = cardBorder
             ) {
                 Text(
-                    text = decryptedUsername,
-                    color = Color.White.copy(alpha = 0.95f),
+                    text = if (hasUsername) decryptedUsername else "No username assigned",
+                    color = Color.White.copy(alpha = if (hasUsername) 0.95f else 0.55f),
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium
                 )
@@ -175,7 +187,11 @@ fun SecretDetailScreen(
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         IconButton(onClick = { copyToClipboard(context, "password", decryptedPassword) }) {
-                            Icon(Icons.Filled.ContentCopy, contentDescription = "Copy password", tint = neoMint)
+                            Icon(
+                                imageVector = Icons.Filled.ContentCopy,
+                                contentDescription = "Copy password",
+                                tint = neoMint
+                            )
                         }
                         IconButton(onClick = { revealPassword = !revealPassword }) {
                             Icon(
@@ -266,7 +282,7 @@ fun SecretDetailScreen(
                 )
             }
 
-            Spacer(Modifier.weight(1f))
+            Spacer(Modifier.height(10.dp))
         }
 
         BottomActionBar(
@@ -295,9 +311,7 @@ fun SecretDetailScreen(
                             onNavigateBack()
                         },
                         colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                    ) {
-                        Text("Delete", fontWeight = FontWeight.SemiBold)
-                    }
+                    ) { Text("Delete", fontWeight = FontWeight.SemiBold) }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) { Text("Cancel") }
@@ -306,6 +320,8 @@ fun SecretDetailScreen(
         }
     }
 }
+
+// ... keep the rest of your helpers (BottomActionBar, FigmaCard, CategoryChipFigma, copyToClipboard, strengthToProgress) unchanged
 
 @Composable
 private fun BottomActionBar(

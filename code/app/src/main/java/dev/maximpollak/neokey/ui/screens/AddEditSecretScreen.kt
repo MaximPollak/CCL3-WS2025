@@ -24,6 +24,10 @@ import dev.maximpollak.neokey.utils.calculatePasswordStrength
 import dev.maximpollak.neokey.utils.generatePassword
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 
 enum class SecretWizardStep { Service, Password, Category, NotesReview }
 
@@ -271,14 +275,40 @@ fun AddEditSecretScreen(
                     )
 
                     Spacer(Modifier.height(6.dp))
-                    LinearProgressIndicator(
-                        progress = passwordStrength.score.toFloat().div(6f),
-                        color = passwordStrength.color,
-                        trackColor = Color.White.copy(alpha = 0.10f),
+
+// Make sure "very strong" can reach a full bar + remove the tiny dot cap
+                    Spacer(Modifier.height(6.dp))
+
+// Keep your strength *label* logic untouched.
+// Only map score -> bar progress, clamped to [0..1].
+                    val maxScore = 6f
+                    val strengthProgress = (passwordStrength.score.toFloat() / maxScore).coerceIn(0f, 1f)
+
+                    val barShape = RoundedCornerShape(999.dp)
+                    val trackColor = Color.White.copy(alpha = 0.10f)
+
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(8.dp)
+                            .clip(barShape)
+                            .background(trackColor)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxHeight()
+                                .fillMaxWidth(strengthProgress)
+                                .clip(barShape)
+                                .background(passwordStrength.color)
+                        )
+                    }
+
+                    Text(
+                        text = passwordStrength.label,
+                        color = Color.White.copy(alpha = 0.60f),
+                        style = MaterialTheme.typography.bodySmall
                     )
+
 
                     OutlinedButton(
                         onClick = {

@@ -78,7 +78,7 @@ fun SecretsScreen(
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
 
     var query by remember { mutableStateOf("") }
-
+    var backLocked by remember { mutableStateOf(false) }
     // which entries are currently revealed
     val revealed = remember { mutableStateMapOf<Int, Boolean>() }
 
@@ -129,7 +129,14 @@ fun SecretsScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
+                IconButton(
+                    onClick = {
+                        if (backLocked) return@IconButton
+                        backLocked = true
+                        onBackClick()
+                    },
+                    enabled = !backLocked
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBackIosNew,
                         contentDescription = "Back",

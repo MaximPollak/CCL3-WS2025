@@ -76,7 +76,7 @@ fun SecretsScreen(
     val context = LocalContext.current
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
-
+    var backLocked by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     val revealed = remember { mutableStateMapOf<Int, Boolean>() }
     val categoryLabel = remember(categoryFilter) {
@@ -129,11 +129,18 @@ fun SecretsScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Back button
-                IconButton(onClick = onBackClick) {
+                IconButton(
+                    onClick = {
+                        if (backLocked) return@IconButton
+                        backLocked = true
+                        onBackClick()
+                    },
+                    enabled = !backLocked
+                ) {
                     Icon(
                         imageVector = Icons.Outlined.ArrowBackIosNew,
                         contentDescription = "Back",
-                        tint = Color(0xFF38FBDB) // NeoMint
+                        tint = Color(0xFF38FBDB)
                     )
                 }
 

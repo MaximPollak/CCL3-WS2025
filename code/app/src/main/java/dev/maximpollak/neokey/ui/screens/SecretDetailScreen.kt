@@ -2,12 +2,29 @@
 package dev.maximpollak.neokey.ui.screens
 
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -19,8 +36,25 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,8 +103,7 @@ fun SecretDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
-                .statusBarsPadding(),
+                .background(Brush.verticalGradient(listOf(bgTop, bgBottom))),
             contentAlignment = Alignment.Center
         ) {
             Text("Loading…", color = Color.White.copy(alpha = 0.70f))
@@ -101,14 +134,13 @@ fun SecretDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
-            .statusBarsPadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp)
                 .verticalScroll(rememberScrollState())
-                .padding(bottom = 140.dp) // ✅ space so notes don't hide behind bottom bar
+                .padding(bottom = 140.dp)
         ) {
             Spacer(Modifier.height(10.dp))
 
@@ -160,7 +192,16 @@ fun SecretDetailScreen(
                 title = "USERNAME",
                 trailing = {
                     IconButton(
-                        onClick = { if (hasUsername) copyToClipboard(context, "username", decryptedUsername) },
+                        onClick = {
+                            if (hasUsername) {
+                                copySensitiveToClipboard(
+                                    context = context,
+                                    label = "username",
+                                    value = decryptedUsername,
+                                    clearAfterMs = 30_000L
+                                )
+                            }
+                        },
                         enabled = hasUsername
                     ) {
                         Icon(
@@ -188,7 +229,14 @@ fun SecretDetailScreen(
                 title = "PASSWORD",
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { copyToClipboard(context, "password", decryptedPassword) }) {
+                        IconButton(onClick = {
+                            copySensitiveToClipboard(
+                                context = context,
+                                label = "password",
+                                value = decryptedPassword,
+                                clearAfterMs = 30_000L
+                            )
+                        }) {
                             Icon(
                                 imageVector = Icons.Filled.ContentCopy,
                                 contentDescription = "Copy password",
@@ -248,18 +296,20 @@ fun SecretDetailScreen(
 
                 Spacer(Modifier.height(10.dp))
 
+                val barShape = RoundedCornerShape(999.dp)
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(10.dp)
-                        .clip(RoundedCornerShape(999.dp))
+                        .clip(barShape)
                         .background(Color.White.copy(alpha = 0.08f))
                 ) {
                     Box(
                         modifier = Modifier
-                            .fillMaxWidth(progress)
                             .fillMaxHeight()
-                            .clip(RoundedCornerShape(999.dp))
+                            .fillMaxWidth(progress)
+                            .clip(barShape)
                             .background(strength.color)
                     )
                 }
@@ -321,6 +371,46 @@ fun SecretDetailScreen(
             )
         }
     }
+}
+
+/**
+ * Same "copy" logic as SecretsScreen:
+ * - mark as sensitive (Android 13+)
+ * - auto-clear after [clearAfterMs] if clipboard still contains the same value
+ */
+private fun copySensitiveToClipboard(
+    context: Context,
+    label: String,
+    value: String,
+    clearAfterMs: Long = 30_000L
+) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    val clip = ClipData.newPlainText(label, value)
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val extras = android.os.PersistableBundle().apply {
+            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+        }
+        clip.description.extras = extras
+    }
+
+    clipboard.setPrimaryClip(clip)
+
+    Handler(Looper.getMainLooper()).postDelayed({
+        val currentText = clipboard.primaryClip
+            ?.takeIf { it.itemCount > 0 }
+            ?.getItemAt(0)
+            ?.coerceToText(context)
+            ?.toString()
+
+        if (currentText == value) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                clipboard.clearPrimaryClip()
+            } else {
+                clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
+            }
+        }
+    }, clearAfterMs)
 }
 
 // --- helpers unchanged below ---
@@ -442,9 +532,4 @@ private fun CategoryChipFigma(
             fontWeight = FontWeight.Medium
         )
     }
-}
-
-private fun copyToClipboard(context: Context, label: String, value: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
 }

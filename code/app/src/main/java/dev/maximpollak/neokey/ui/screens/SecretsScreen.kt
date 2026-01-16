@@ -1,8 +1,12 @@
 package dev.maximpollak.neokey.ui.screens
 
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -79,6 +83,7 @@ fun SecretsScreen(
 
     var query by remember { mutableStateOf("") }
     var backLocked by remember { mutableStateOf(false) }
+
     // which entries are currently revealed
     val revealed = remember { mutableStateMapOf<Int, Boolean>() }
 
@@ -101,9 +106,9 @@ fun SecretsScreen(
         if (q.isEmpty()) categoryFiltered
         else categoryFiltered.filter { s ->
             s.title.lowercase().contains(q) ||
-                    s.account.lowercase().contains(q) || // NOTE: account is encrypted now, search won't be useful unless you decrypt or store a searchable field
+                    s.account.lowercase().contains(q) ||
                     s.category.name.lowercase().contains(q) ||
-                    (s.note?.lowercase()?.contains(q) == true) // NOTE: note is encrypted now too
+                    (s.note?.lowercase()?.contains(q) == true)
         }
     }
 
@@ -199,8 +204,14 @@ fun SecretsScreen(
                             }
                         },
                         onCopyPassword = {
+                            // ✅ copy WITHOUT revealing; decrypt only for the copy action
                             val plain = CryptoManager.decrypt(secret.password)
-                            copyToClipboard(context, "password", plain)
+                            copySensitiveToClipboard(
+                                context = context,
+                                label = "password",
+                                value = plain,
+                                clearAfterMs = 30_000L
+                            )
                         },
                         onClick = { onSecretClick(secret.id) }
                     )
@@ -331,10 +342,7 @@ private fun SecretListCard(
                 CategoryChip(secret.category)
             }
 
-            Spacer(Modifier.height(4.dp))
-
-            // NOTE: account is encrypted now, so this will look like Base64.
-            // If you want account readable without unlock, store it unencrypted or decrypt-on-demand too.
+            Spacer(Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -407,7 +415,44 @@ private fun SecretType.accentColor(): Color = when (this) {
 
 private const val MASK = "••••••••"
 
-private fun copyToClipboard(context: Context, label: String, value: String) {
+/**
+ * Copies a sensitive value to the clipboard, marks it as sensitive (Android 13+),
+ * and clears it automatically after [clearAfterMs] IF the clipboard still contains the same value.
+ */
+private fun copySensitiveToClipboard(
+    context: Context,
+    label: String,
+    value: String,
+    clearAfterMs: Long = 30_000L
+) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
+
+    val clip = ClipData.newPlainText(label, value)
+
+    // ✅ Mark as sensitive (Android 13 / API 33+)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val extras = android.os.PersistableBundle().apply {
+            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
+        }
+        clip.description.extras = extras
+    }
+
+    clipboard.setPrimaryClip(clip)
+
+    // ✅ Auto-clear after delay, but only if clipboard wasn't replaced by the user/app
+    Handler(Looper.getMainLooper()).postDelayed({
+        val currentText = clipboard.primaryClip
+            ?.takeIf { it.itemCount > 0 }
+            ?.getItemAt(0)
+            ?.coerceToText(context)
+            ?.toString()
+
+        if (currentText == value) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                clipboard.clearPrimaryClip()
+            } else {
+                clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
+            }
+        }
+    }, clearAfterMs)
 }

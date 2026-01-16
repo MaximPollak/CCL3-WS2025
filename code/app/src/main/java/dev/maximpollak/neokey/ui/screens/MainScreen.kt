@@ -144,7 +144,7 @@ fun MainScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Unlock with Biometric")
+                        Text("Device Secured Access")
                     }
 
                     Spacer(Modifier.height(10.dp))
@@ -157,12 +157,7 @@ fun MainScreen(
                     )
 
                     // Optional PIN button (only clickable if you pass onUsePin)
-                    TextButton(
-                        onClick = { onUsePin?.invoke() },
-                        enabled = onUsePin != null
-                    ) {
-                        Text("Use PIN / Password")
-                    }
+
 
                     if (errorMessage != null) {
                         Spacer(Modifier.height(8.dp))

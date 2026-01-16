@@ -5,8 +5,6 @@ import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -64,12 +62,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.Worker
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.domain.model.SecretType
 import dev.maximpollak.neokey.security.CryptoManager
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-
+import dev.maximpollak.neokey.utils.ClearClipboardWorker
+import dev.maximpollak.neokey.utils.copySensitiveToClipboard
 @Composable
 fun SecretsScreen(
     onAddClick: () -> Unit,
@@ -100,8 +105,9 @@ fun SecretsScreen(
     val filtered = remember(query, secrets, categoryFilter) {
         val q = query.trim().lowercase()
 
-        val categoryFiltered = if (categoryFilter == "ALL") secrets
-        else secrets.filter { it.category.name == categoryFilter }
+        val categoryFiltered =
+            if (categoryFilter == "ALL") secrets
+            else secrets.filter { it.category.name == categoryFilter }
 
         if (q.isEmpty()) categoryFiltered
         else categoryFiltered.filter { s ->
@@ -204,7 +210,6 @@ fun SecretsScreen(
                             }
                         },
                         onCopyPassword = {
-                            // ✅ copy WITHOUT revealing; decrypt only for the copy action
                             val plain = CryptoManager.decrypt(secret.password)
                             copySensitiveToClipboard(
                                 context = context,
@@ -304,7 +309,6 @@ private fun SecretListCard(
     val cardShape = RoundedCornerShape(22.dp)
     val surface = Color.White.copy(alpha = 0.05f)
 
-    // Category-based border color
     val accent = secret.category.accentColor()
     val border = accent.copy(alpha = 0.35f)
 
@@ -415,44 +419,37 @@ private fun SecretType.accentColor(): Color = when (this) {
 
 private const val MASK = "••••••••"
 
-/**
- * Copies a sensitive value to the clipboard, marks it as sensitive (Android 13+),
- * and clears it automatically after [clearAfterMs] IF the clipboard still contains the same value.
- */
-private fun copySensitiveToClipboard(
+// ------------------- WorkManager clipboard clearing -------------------
+
+class ClearClipboardWorker(
     context: Context,
-    label: String,
-    value: String,
-    clearAfterMs: Long = 30_000L
-) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    params: WorkerParameters
+) : Worker(context, params) {
 
-    val clip = ClipData.newPlainText(label, value)
+    override fun doWork(): Result {
+        val valueToCheck = inputData.getString(KEY_VALUE) ?: return Result.failure()
 
-    // ✅ Mark as sensitive (Android 13 / API 33+)
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val extras = android.os.PersistableBundle().apply {
-            putBoolean(ClipDescription.EXTRA_IS_SENSITIVE, true)
-        }
-        clip.description.extras = extras
-    }
+        val clipboard =
+            applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
 
-    clipboard.setPrimaryClip(clip)
-
-    // ✅ Auto-clear after delay, but only if clipboard wasn't replaced by the user/app
-    Handler(Looper.getMainLooper()).postDelayed({
         val currentText = clipboard.primaryClip
             ?.takeIf { it.itemCount > 0 }
             ?.getItemAt(0)
-            ?.coerceToText(context)
+            ?.coerceToText(applicationContext)
             ?.toString()
 
-        if (currentText == value) {
+        if (currentText == valueToCheck) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 clipboard.clearPrimaryClip()
             } else {
                 clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
             }
         }
-    }, clearAfterMs)
+        return Result.success()
+    }
+
+    companion object {
+        const val KEY_VALUE = "value"
+    }
 }
+

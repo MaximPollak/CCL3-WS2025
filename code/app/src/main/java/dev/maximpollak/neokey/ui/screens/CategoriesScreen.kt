@@ -31,7 +31,6 @@ import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 
-
 data class CategoryTile(
     val key: String,              // "ALL" or SecretType.name
     val label: String,
@@ -48,15 +47,17 @@ fun CategoriesScreen(
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
 
+    // ✅ Categories now match your enum exactly
     val tiles = listOf(
         CategoryTile("ALL", "All", Icons.Outlined.Key, Color(0xFF1F8EF1)),
         CategoryTile(SecretType.WORK.name, "Work", Icons.Outlined.PeopleAlt, Color(0xFF33C759)),
-        CategoryTile(SecretType.EDUCATION.name, "Studies", Icons.Outlined.QrCode2, Color(0xFFFFCC00)),
+        CategoryTile(SecretType.EDUCATION.name, "Education", Icons.Outlined.QrCode2, Color(0xFFFFCC00)),
         CategoryTile(SecretType.WIFI.name, "Wi-Fi", Icons.Outlined.Wifi, Color(0xFF64D2FF)),
-        CategoryTile(SecretType.PRIVATE.name, "Security", Icons.Outlined.Security, Color(0xFFFF3B30)),
-        CategoryTile(SecretType.ELSE.name, "Other", Icons.Outlined.Folder, Color(0xFFFF9500)),
+        CategoryTile(SecretType.PRIVATE.name, "Private", Icons.Outlined.Security, Color(0xFFFF3B30)),
+        CategoryTile(SecretType.ELSE.name, "Else", Icons.Outlined.Folder, Color(0xFFFF9500)),
     )
 
+    // ✅ "ALL" shows all entries
     val counts = secretsCountMap(secrets)
 
     Box(
@@ -70,7 +71,7 @@ fun CategoriesScreen(
             .statusBarsPadding()
     ) {
 
-        // 1️⃣ MAIN CONTENT
+        // MAIN CONTENT
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -91,7 +92,7 @@ fun CategoriesScreen(
                 columns = GridCells.Fixed(2),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 120.dp), // leave space for FAB
+                contentPadding = PaddingValues(bottom = 120.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(tiles, key = { it.key }) { tile ->
@@ -104,11 +105,11 @@ fun CategoriesScreen(
             }
         }
 
-        // 2️⃣ FLOATING ADD BUTTON (THIS MUST BE HERE)
+        // FLOATING ADD BUTTON
         FloatingActionButton(
             onClick = onAddClick,
             modifier = Modifier
-                .align(Alignment.BottomCenter)   // ✅ now valid
+                .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
                 .padding(bottom = 18.dp)
                 .size(72.dp)
@@ -178,7 +179,7 @@ private fun CategoryCard(
                 )
             }
 
-            Spacer(Modifier.width(12.dp))
+            Spacer(Modifier.width(6.dp))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -195,7 +196,7 @@ private fun CategoryCard(
                 style = MaterialTheme.typography.titleMedium
             )
 
-            Spacer(Modifier.width(6.dp))
+            Spacer(Modifier.width(0.dp))
 
             Icon(
                 imageVector = Icons.Outlined.ChevronRight,

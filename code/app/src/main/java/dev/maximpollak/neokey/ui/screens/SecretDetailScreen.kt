@@ -37,6 +37,9 @@ import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
 import kotlin.math.max
 import kotlin.math.min
+import dev.maximpollak.neokey.utils.ClearClipboardWorker
+import dev.maximpollak.neokey.utils.copySensitiveToClipboard
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,7 +95,10 @@ fun SecretDetailScreen(
     val hasUsername = decryptedUsername.isNotBlank()
 
     val strength = calculatePasswordStrength(decryptedPassword)
-    val progress = strengthToProgress(strength.score)
+
+    // ✅ SAME progress logic as AddEditSecretScreen
+    val maxScore = 6f
+    val progress = (strength.score.toFloat() / maxScore).coerceIn(0f, 1f)
 
     Box(
         modifier = Modifier
@@ -100,17 +106,15 @@ fun SecretDetailScreen(
             .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
             .statusBarsPadding()
     ) {
-        // ✅ scrollable content
+        // ✅ Fixed header (NOT scrollable)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 18.dp)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 140.dp) // ✅ space so notes don't hide behind bottom bar
         ) {
             Spacer(Modifier.height(10.dp))
 
-            // Top bar
+            // Top bar (sticky)
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -141,150 +145,177 @@ fun SecretDetailScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // SERVICE
-            FigmaCard("SERVICE", cardFill = cardFill, cardBorder = cardBorder) {
-                Text(
-                    text = secretValue.title,
-                    color = Color.White.copy(alpha = 0.95f),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            // USERNAME
-            FigmaCard(
-                title = "USERNAME",
-                trailing = {
-                    IconButton(
-                        onClick = { if (hasUsername) copyToClipboard(context, "username", decryptedUsername) },
-                        enabled = hasUsername
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ContentCopy,
-                            contentDescription = "Copy username",
-                            tint = neoMint.copy(alpha = if (hasUsername) 1f else 0.25f)
-                        )
-                    }
-                },
-                cardFill = cardFill,
-                cardBorder = cardBorder
+            // ✅ Scrollable content ONLY
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = 140.dp) // space for bottom bar
             ) {
-                Text(
-                    text = if (hasUsername) decryptedUsername else "No username assigned",
-                    color = Color.White.copy(alpha = if (hasUsername) 0.95f else 0.55f),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            // PASSWORD
-            FigmaCard(
-                title = "PASSWORD",
-                trailing = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        IconButton(onClick = { copyToClipboard(context, "password", decryptedPassword) }) {
-                            Icon(
-                                imageVector = Icons.Filled.ContentCopy,
-                                contentDescription = "Copy password",
-                                tint = neoMint
-                            )
-                        }
-                        IconButton(onClick = { revealPassword = !revealPassword }) {
-                            Icon(
-                                imageVector = if (revealPassword) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                                contentDescription = "Toggle password",
-                                tint = Color.White.copy(alpha = 0.55f)
-                            )
-                        }
-                    }
-                },
-                cardFill = cardFill,
-                cardBorder = cardBorder
-            ) {
-                val masked = "•".repeat(max(8, min(decryptedPassword.length, 14)))
-
-                Text(
-                    text = if (revealPassword) decryptedPassword else masked,
-                    color = Color.White.copy(alpha = 0.95f),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Medium
-                )
+                // SERVICE
+                FigmaCard("SERVICE", cardFill = cardFill, cardBorder = cardBorder) {
+                    Text(
+                        text = secretValue.title,
+                        color = Color.White.copy(alpha = 0.95f),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
 
                 Spacer(Modifier.height(14.dp))
 
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                // USERNAME
+                FigmaCard(
+                    title = "USERNAME",
+                    trailing = {
+                        IconButton(
+                            onClick = {
+                                if (hasUsername) {
+                                    copySensitiveToClipboard(
+                                        context = context,
+                                        label = "username",
+                                        value = decryptedUsername,
+                                        clearAfterMs = 30_000L
+                                    )
+                                }
+                            },
+                            enabled = hasUsername
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ContentCopy,
+                                contentDescription = "Copy username",
+                                tint = neoMint.copy(alpha = if (hasUsername) 1f else 0.25f)
+                            )
+                        }
+                    },
+                    cardFill = cardFill,
+                    cardBorder = cardBorder
                 ) {
-                    Icon(
-                        imageVector = Icons.Outlined.Shield,
-                        contentDescription = null,
-                        tint = strength.color,
-                        modifier = Modifier.size(18.dp)
+                    Text(
+                        text = if (hasUsername) decryptedUsername else "No username assigned",
+                        color = Color.White.copy(alpha = if (hasUsername) 0.95f else 0.55f),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Medium
                     )
+                }
 
-                    Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.height(14.dp))
+
+                // PASSWORD
+                FigmaCard(
+                    title = "PASSWORD",
+                    trailing = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            IconButton(
+                                onClick = {
+                                    copySensitiveToClipboard(
+                                        context = context,
+                                        label = "password",
+                                        value = decryptedPassword,
+                                        clearAfterMs = 30_000L
+                                    )
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.ContentCopy,
+                                    contentDescription = "Copy password",
+                                    tint = neoMint
+                                )
+                            }
+                            IconButton(onClick = { revealPassword = !revealPassword }) {
+                                Icon(
+                                    imageVector = if (revealPassword) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                                    contentDescription = "Toggle password",
+                                    tint = Color.White.copy(alpha = 0.55f)
+                                )
+                            }
+                        }
+                    },
+                    cardFill = cardFill,
+                    cardBorder = cardBorder
+                ) {
+                    val masked = "•".repeat(max(8, min(decryptedPassword.length, 14)))
 
                     Text(
-                        text = "Password Strength",
-                        color = Color.White.copy(alpha = 0.55f),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
+                        text = if (revealPassword) decryptedPassword else masked,
+                        color = Color.White.copy(alpha = 0.95f),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Medium
                     )
 
+                    Spacer(Modifier.height(14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Shield,
+                            contentDescription = null,
+                            tint = strength.color,
+                            modifier = Modifier.size(18.dp)
+                        )
+
+                        Spacer(Modifier.width(8.dp))
+
+                        Text(
+                            text = "Password Strength",
+                            color = Color.White.copy(alpha = 0.55f),
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Text(
+                            text = strength.label,
+                            color = strength.color,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(Modifier.height(10.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(10.dp)
+                            .clip(RoundedCornerShape(999.dp))
+                            .background(Color.White.copy(alpha = 0.08f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(progress)
+                                .fillMaxHeight()
+                                .clip(RoundedCornerShape(999.dp))
+                                .background(strength.color)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(14.dp))
+
+                // CATEGORY
+                FigmaCard("CATEGORY", cardFill = cardFill, cardBorder = cardBorder) {
+                    CategoryChipFigma(type = secretValue.category, neoMint = neoMint)
+                }
+
+                Spacer(Modifier.height(14.dp))
+
+                // NOTES
+                FigmaCard("NOTES", cardFill = cardFill, cardBorder = cardBorder) {
+                    val noteText = decryptedNote?.takeIf { it.isNotBlank() } ?: "—"
                     Text(
-                        text = strength.label,
-                        color = strength.color,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold
+                        text = noteText,
+                        color = Color.White.copy(alpha = 0.75f),
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
 
                 Spacer(Modifier.height(10.dp))
-
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(10.dp)
-                        .clip(RoundedCornerShape(999.dp))
-                        .background(Color.White.copy(alpha = 0.08f))
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth(progress)
-                            .fillMaxHeight()
-                            .clip(RoundedCornerShape(999.dp))
-                            .background(strength.color)
-                    )
-                }
             }
-
-            Spacer(Modifier.height(14.dp))
-
-            // CATEGORY
-            FigmaCard("CATEGORY", cardFill = cardFill, cardBorder = cardBorder) {
-                CategoryChipFigma(type = secretValue.category, neoMint = neoMint)
-            }
-
-            Spacer(Modifier.height(14.dp))
-
-            // NOTES
-            FigmaCard("NOTES", cardFill = cardFill, cardBorder = cardBorder) {
-                val noteText = decryptedNote?.takeIf { it.isNotBlank() } ?: "—"
-                Text(
-                    text = noteText,
-                    color = Color.White.copy(alpha = 0.75f),
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-
-            Spacer(Modifier.height(10.dp))
         }
 
+        // Bottom bar stays fixed
         BottomActionBar(
             neoMint = neoMint,
             cardFill = cardFill,
@@ -321,7 +352,8 @@ fun SecretDetailScreen(
     }
 }
 
-// ... keep the rest of your helpers (BottomActionBar, FigmaCard, CategoryChipFigma, copyToClipboard, strengthToProgress) unchanged
+
+// --- helpers unchanged below ---
 
 @Composable
 private fun BottomActionBar(
@@ -442,16 +474,3 @@ private fun CategoryChipFigma(
     }
 }
 
-private fun copyToClipboard(context: Context, label: String, value: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
-}
-
-private fun strengthToProgress(score: Int): Float {
-    return when (score) {
-        0, 1, 2 -> 0.28f
-        3, 4 -> 0.55f
-        5 -> 0.78f
-        else -> 0.92f
-    }
-}

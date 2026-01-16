@@ -1,8 +1,10 @@
 package dev.maximpollak.neokey.ui.screens
 
 import android.content.ClipData
+import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -60,12 +62,19 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.Worker
+import androidx.work.WorkerParameters
+import androidx.work.workDataOf
 import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.domain.model.SecretType
 import dev.maximpollak.neokey.security.CryptoManager
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-
+import dev.maximpollak.neokey.utils.ClearClipboardWorker
+import dev.maximpollak.neokey.utils.copySensitiveToClipboard
 @Composable
 fun SecretsScreen(
     onAddClick: () -> Unit,
@@ -79,6 +88,7 @@ fun SecretsScreen(
 
     var query by remember { mutableStateOf("") }
     var backLocked by remember { mutableStateOf(false) }
+
     // which entries are currently revealed
     val revealed = remember { mutableStateMapOf<Int, Boolean>() }
 
@@ -95,15 +105,16 @@ fun SecretsScreen(
     val filtered = remember(query, secrets, categoryFilter) {
         val q = query.trim().lowercase()
 
-        val categoryFiltered = if (categoryFilter == "ALL") secrets
-        else secrets.filter { it.category.name == categoryFilter }
+        val categoryFiltered =
+            if (categoryFilter == "ALL") secrets
+            else secrets.filter { it.category.name == categoryFilter }
 
         if (q.isEmpty()) categoryFiltered
         else categoryFiltered.filter { s ->
             s.title.lowercase().contains(q) ||
-                    s.account.lowercase().contains(q) || // NOTE: account is encrypted now, search won't be useful unless you decrypt or store a searchable field
+                    s.account.lowercase().contains(q) ||
                     s.category.name.lowercase().contains(q) ||
-                    (s.note?.lowercase()?.contains(q) == true) // NOTE: note is encrypted now too
+                    (s.note?.lowercase()?.contains(q) == true)
         }
     }
 
@@ -200,7 +211,12 @@ fun SecretsScreen(
                         },
                         onCopyPassword = {
                             val plain = CryptoManager.decrypt(secret.password)
-                            copyToClipboard(context, "password", plain)
+                            copySensitiveToClipboard(
+                                context = context,
+                                label = "password",
+                                value = plain,
+                                clearAfterMs = 30_000L
+                            )
                         },
                         onClick = { onSecretClick(secret.id) }
                     )
@@ -293,7 +309,6 @@ private fun SecretListCard(
     val cardShape = RoundedCornerShape(22.dp)
     val surface = Color.White.copy(alpha = 0.05f)
 
-    // Category-based border color
     val accent = secret.category.accentColor()
     val border = accent.copy(alpha = 0.35f)
 
@@ -331,10 +346,7 @@ private fun SecretListCard(
                 CategoryChip(secret.category)
             }
 
-            Spacer(Modifier.height(4.dp))
-
-            // NOTE: account is encrypted now, so this will look like Base64.
-            // If you want account readable without unlock, store it unencrypted or decrypt-on-demand too.
+            Spacer(Modifier.height(10.dp))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -407,7 +419,37 @@ private fun SecretType.accentColor(): Color = when (this) {
 
 private const val MASK = "••••••••"
 
-private fun copyToClipboard(context: Context, label: String, value: String) {
-    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-    clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
+// ------------------- WorkManager clipboard clearing -------------------
+
+class ClearClipboardWorker(
+    context: Context,
+    params: WorkerParameters
+) : Worker(context, params) {
+
+    override fun doWork(): Result {
+        val valueToCheck = inputData.getString(KEY_VALUE) ?: return Result.failure()
+
+        val clipboard =
+            applicationContext.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+
+        val currentText = clipboard.primaryClip
+            ?.takeIf { it.itemCount > 0 }
+            ?.getItemAt(0)
+            ?.coerceToText(applicationContext)
+            ?.toString()
+
+        if (currentText == valueToCheck) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                clipboard.clearPrimaryClip()
+            } else {
+                clipboard.setPrimaryClip(ClipData.newPlainText("", ""))
+            }
+        }
+        return Result.success()
+    }
+
+    companion object {
+        const val KEY_VALUE = "value"
+    }
 }
+

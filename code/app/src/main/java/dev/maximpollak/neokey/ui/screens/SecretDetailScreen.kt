@@ -92,7 +92,10 @@ fun SecretDetailScreen(
     val hasUsername = decryptedUsername.isNotBlank()
 
     val strength = calculatePasswordStrength(decryptedPassword)
-    val progress = strengthToProgress(strength.score)
+
+    // ✅ SAME progress logic as AddEditSecretScreen
+    val maxScore = 6f
+    val progress = (strength.score.toFloat() / maxScore).coerceIn(0f, 1f)
 
     Box(
         modifier = Modifier
@@ -100,7 +103,6 @@ fun SecretDetailScreen(
             .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
             .statusBarsPadding()
     ) {
-        // ✅ scrollable content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -321,7 +323,7 @@ fun SecretDetailScreen(
     }
 }
 
-// ... keep the rest of your helpers (BottomActionBar, FigmaCard, CategoryChipFigma, copyToClipboard, strengthToProgress) unchanged
+// --- helpers unchanged below ---
 
 @Composable
 private fun BottomActionBar(
@@ -445,13 +447,4 @@ private fun CategoryChipFigma(
 private fun copyToClipboard(context: Context, label: String, value: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText(label, value))
-}
-
-private fun strengthToProgress(score: Int): Float {
-    return when (score) {
-        0, 1, 2 -> 0.28f
-        3, 4 -> 0.55f
-        5 -> 0.78f
-        else -> 0.92f
-    }
 }

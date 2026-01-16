@@ -197,6 +197,15 @@ fun SecretsScreen(
                         secret = secret,
                         revealed = isRevealed,
                         displayPassword = displayPassword,
+                        onCopyPassword = {
+                            val plain = CryptoManager.decrypt(secret.password)
+                            copySensitiveToClipboard(
+                                context = context,
+                                label = "password",
+                                value = plain,
+                                clearAfterMs = 30_000L
+                            )
+                        },
                         onToggleReveal = {
                             val currentlyRevealed = revealed[secret.id] == true
                             if (!currentlyRevealed) {
@@ -208,15 +217,6 @@ fun SecretsScreen(
                                 revealedPassword.remove(secret.id)
                                 revealed[secret.id] = false
                             }
-                        },
-                        onCopyPassword = {
-                            val plain = CryptoManager.decrypt(secret.password)
-                            copySensitiveToClipboard(
-                                context = context,
-                                label = "password",
-                                value = plain,
-                                clearAfterMs = 30_000L
-                            )
                         },
                         onClick = { onSecretClick(secret.id) }
                     )

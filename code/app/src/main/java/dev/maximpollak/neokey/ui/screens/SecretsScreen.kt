@@ -361,18 +361,18 @@ private fun SecretListCard(
                     modifier = Modifier.weight(1f)
                 )
 
-                IconButton(onClick = onToggleReveal) {
-                    Icon(
-                        imageVector = if (revealed) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
-                        contentDescription = if (revealed) "Hide password" else "Reveal password",
-                        tint = Color.White.copy(alpha = 0.65f)
-                    )
-                }
-
                 IconButton(onClick = onCopyPassword) {
                     Icon(
                         imageVector = Icons.Filled.ContentCopy,
                         contentDescription = "Copy password",
+                        tint = Color.White.copy(alpha = 0.65f)
+                    )
+                }
+
+                IconButton(onClick = onToggleReveal) {
+                    Icon(
+                        imageVector = if (revealed) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                        contentDescription = if (revealed) "Hide password" else "Reveal password",
                         tint = Color.White.copy(alpha = 0.65f)
                     )
                 }

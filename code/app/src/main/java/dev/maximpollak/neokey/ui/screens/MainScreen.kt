@@ -64,6 +64,12 @@ fun MainScreen(
             Spacer(Modifier.height(24.dp))
 
             Text(
+                text = "Welcome to",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Text(
                 text = "NEOKey",
                 style = MaterialTheme.typography.displayLarge
             )

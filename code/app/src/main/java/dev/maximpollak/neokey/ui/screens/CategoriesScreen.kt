@@ -1,3 +1,4 @@
+// File: CategoriesScreen.kt
 package dev.maximpollak.neokey.ui.screens
 
 import androidx.compose.foundation.background
@@ -11,7 +12,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.*
-import androidx.compose.material3.*
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,50 +34,43 @@ import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.domain.model.SecretType
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 
 data class CategoryTile(
-    val key: String,              // "ALL" or SecretType.name
+    val key: String, // "ALL" or SecretType.name
     val label: String,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector,
-    val iconBg: Color
+    val icon: androidx.compose.ui.graphics.vector.ImageVector
 )
 
 @Composable
 fun CategoriesScreen(
-    onCategoryClick: (String) -> Unit, // passes "ALL" or "WORK"/"WIFI"/...
+    onCategoryClick: (String) -> Unit,
     onAddClick: () -> Unit
 ) {
     val context = LocalContext.current
     val viewModel: SecretsViewModel = viewModel(factory = SecretsViewModelFactory(context))
     val secrets by viewModel.secrets.collectAsState(initial = emptyList())
 
-    // ✅ Categories now match your enum exactly
+    val accent = Color(0xFF25E6C8)
+    val bgTop = Color(0xFF070A12)
+    val bgBottom = Color(0xFF0B1020)
+
     val tiles = listOf(
-        CategoryTile("ALL", "All", Icons.Outlined.Key, Color(0xFF1F8EF1)),
-        CategoryTile(SecretType.WORK.name, "Work", Icons.Outlined.PeopleAlt, Color(0xFF33C759)),
-        CategoryTile(SecretType.EDUCATION.name, "Education", Icons.Outlined.QrCode2, Color(0xFFFFCC00)),
-        CategoryTile(SecretType.WIFI.name, "Wi-Fi", Icons.Outlined.Wifi, Color(0xFF64D2FF)),
-        CategoryTile(SecretType.PRIVATE.name, "Private", Icons.Outlined.Security, Color(0xFFFF3B30)),
-        CategoryTile(SecretType.ELSE.name, "Else", Icons.Outlined.Folder, Color(0xFFFF9500)),
+        CategoryTile("ALL", "All", Icons.Outlined.Key),
+        CategoryTile(SecretType.WORK.name, "Work", Icons.Outlined.WorkOutline),
+        CategoryTile(SecretType.EDUCATION.name, "Education", Icons.Outlined.School),
+        CategoryTile(SecretType.WIFI.name, "Wi-Fi", Icons.Outlined.Wifi),
+        CategoryTile(SecretType.PRIVATE.name, "Private", Icons.Outlined.Security),
+        CategoryTile(SecretType.ELSE.name, "Other", Icons.Outlined.FolderOpen),
     )
 
-    // ✅ "ALL" shows all entries
     val counts = secretsCountMap(secrets)
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(Color(0xFF070A12), Color(0xFF0B1020))
-                )
-            )
+            .background(Brush.verticalGradient(listOf(bgTop, bgBottom)))
             .statusBarsPadding()
     ) {
-
-        // MAIN CONTENT
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -79,11 +78,18 @@ fun CategoriesScreen(
         ) {
             Spacer(Modifier.height(10.dp))
 
+            // Header (manual, stable)
             Text(
                 text = "Categories",
                 color = Color.White,
                 style = MaterialTheme.typography.headlineLarge,
                 fontWeight = FontWeight.SemiBold
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "${counts["ALL"] ?: 0} entries",
+                color = Color.White.copy(alpha = 0.55f),
+                style = MaterialTheme.typography.bodyMedium
             )
 
             Spacer(Modifier.height(16.dp))
@@ -92,20 +98,21 @@ fun CategoriesScreen(
                 columns = GridCells.Fixed(2),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(bottom = 120.dp),
+                contentPadding = PaddingValues(bottom = 140.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
                 items(tiles, key = { it.key }) { tile ->
                     CategoryCard(
                         tile = tile,
                         count = counts[tile.key] ?: 0,
+                        accent = accent,
                         onClick = { onCategoryClick(tile.key) }
                     )
                 }
             }
         }
 
-        // FLOATING ADD BUTTON
+        // ✅ ORIGINAL STYLE FAB (center-bottom, bordered)
         FloatingActionButton(
             onClick = onAddClick,
             modifier = Modifier
@@ -113,10 +120,10 @@ fun CategoriesScreen(
                 .navigationBarsPadding()
                 .padding(bottom = 18.dp)
                 .size(72.dp)
-                .border(3.dp, Color(0xFF38FBDB), CircleShape),
+                .border(3.dp, accent, CircleShape),
             shape = CircleShape,
             containerColor = Color(0xFF0D121E),
-            contentColor = Color(0xFF38FBDB),
+            contentColor = accent,
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 12.dp,
                 pressedElevation = 16.dp
@@ -144,64 +151,47 @@ private fun secretsCountMap(secrets: List<Secret>): Map<String, Int> {
 private fun CategoryCard(
     tile: CategoryTile,
     count: Int,
+    accent: Color,
     onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(18.dp)
+    val shape = RoundedCornerShape(20.dp)
     val cardFill = Color.White.copy(alpha = 0.05f)
     val cardBorder = Color.White.copy(alpha = 0.08f)
 
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .height(92.dp)
+            .height(118.dp)
             .clip(shape)
             .background(cardFill)
             .border(1.dp, cardBorder, shape)
             .clickable(onClick = onClick)
-            .padding(14.dp)
+            .padding(14.dp),
+        verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize(),
-            verticalAlignment = Alignment.CenterVertically
+        Surface(
+            color = accent.copy(alpha = 0.14f),
+            contentColor = accent,
+            shape = RoundedCornerShape(14.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(34.dp)
-                    .clip(CircleShape)
-                    .background(tile.iconBg),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = tile.icon,
-                    contentDescription = null,
-                    tint = Color.Black,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-
-            Spacer(Modifier.width(6.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = tile.label,
-                    color = Color.White,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Text(
-                text = count.toString(),
-                color = Color.White.copy(alpha = 0.55f),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Spacer(Modifier.width(0.dp))
-
             Icon(
-                imageVector = Icons.Outlined.ChevronRight,
+                imageVector = tile.icon,
                 contentDescription = null,
-                tint = Color.White.copy(alpha = 0.45f)
+                modifier = Modifier.padding(10.dp)
+            )
+        }
+
+        Column {
+            Text(
+                text = tile.label,
+                color = Color.White,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = "$count items",
+                color = Color.White.copy(alpha = 0.55f),
+                style = MaterialTheme.typography.bodyMedium
             )
         }
     }

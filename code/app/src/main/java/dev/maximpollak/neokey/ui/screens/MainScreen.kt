@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.PhotoCamera
+import androidx.compose.material.icons.outlined.Pin
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -110,6 +111,12 @@ fun MainScreen(
                             Icon(
                                 imageVector = Icons.Outlined.Fingerprint,
                                 contentDescription = "Fingerprint",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(34.dp)
+                            )
+                            Icon(
+                                imageVector = Icons.Outlined.Pin,
+                                contentDescription = "Pin",
                                 tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(34.dp)
                             )

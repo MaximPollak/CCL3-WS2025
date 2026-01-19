@@ -16,6 +16,7 @@ import dev.maximpollak.neokey.ui.screens.AddEditSecretScreen
 import dev.maximpollak.neokey.ui.screens.CategoriesScreen
 import dev.maximpollak.neokey.ui.screens.SecretDetailScreen
 import dev.maximpollak.neokey.ui.screens.SecretsScreen
+import dev.maximpollak.neokey.ui.screens.EditSecretScreen
 
 private class NavLock(private val lockMs: Long = 450L) {
     private var lastNavTime: Long = 0L
@@ -105,9 +106,10 @@ fun NavGraph() {
             route = "edit/{id}",
             arguments = listOf(navArgument("id") { type = NavType.IntType })
         ) { backStack ->
-            val id = backStack.arguments?.getInt("id")
-            AddEditSecretScreen(
+            val id = backStack.arguments?.getInt("id")!!
+            EditSecretScreen(
                 secretId = id,
+                onSaved = { navController.safePopBackStack(navLock) },
                 onNavigateBack = { navController.safePopBackStack(navLock) }
             )
         }

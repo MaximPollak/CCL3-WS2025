@@ -1,638 +1,474 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0b0f1a" />
-    <title>NEOKey — Project Documentation</title>
+    <title>NEOKey — Project Website</title>
     <meta
             name="description"
-            content="NEOKey is an offline-first Android authenticator for storing secrets securely, encrypting data at rest, and unlocking via biometrics or a master PIN."
+            content="NEOKey — offline-first Android authentication app. App info, usability test plan, and development documentation."
     />
-
-    <style>
-        :root{
-          /* App-like dark base */
-          --bg0:#070a12;
-          --bg1:#0b1020;
-          --card: rgba(255,255,255,.055);
-          --card2: rgba(255,255,255,.08);
-          --line: rgba(255,255,255,.12);
-
-          --text: rgba(255,255,255,.92);
-          --muted: rgba(255,255,255,.72);
-          --muted2: rgba(255,255,255,.56);
-
-          /* Keep your Android feel (mint + violet) but calmer */
-          --mint: #74f7d0;
-          --violet: #8a7dff;
-
-          --shadow: 0 18px 60px rgba(0,0,0,.45);
-          --r: 18px;
-          --r2: 26px;
-          --max: 1120px;
-        }
-
-        *{ box-sizing:border-box; }
-        html,body{ height:100%; }
-        html{ scroll-behavior:smooth; }
-        body{
-          margin:0;
-          font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji","Segoe UI Emoji";
-          color:var(--text);
-          background:
-            radial-gradient(900px 500px at 10% 5%, rgba(138,125,255,.14), transparent 60%),
-            radial-gradient(900px 500px at 90% 15%, rgba(116,247,208,.10), transparent 60%),
-            linear-gradient(180deg, var(--bg0), var(--bg1));
-          overflow-x:hidden;
-        }
-
-        a{ color:inherit; text-decoration:none; }
-        a:hover{ text-decoration:underline; }
-
-        .wrap{ width:min(var(--max), calc(100% - 40px)); margin:0 auto; }
-
-        /* NAV */
-        .nav{
-          position:sticky; top:0; z-index:20;
-          backdrop-filter: blur(14px);
-          background: rgba(7,10,18,.58);
-          border-bottom: 1px solid rgba(255,255,255,.08);
-        }
-        .nav-inner{
-          display:flex; align-items:center; justify-content:space-between;
-          padding: 14px 0;
-          gap: 14px;
-        }
-        .brand{
-          display:flex; align-items:center; gap:10px;
-          font-weight:800; letter-spacing:.2px;
-          min-width: 210px;
-        }
-        .logo{
-          width:34px; height:34px; border-radius:12px;
-          background:
-            radial-gradient(14px 14px at 30% 35%, rgba(255,255,255,.35), transparent 60%),
-            conic-gradient(from 210deg, var(--mint), var(--violet), var(--mint));
-          box-shadow: 0 10px 30px rgba(138,125,255,.14);
-          border: 1px solid rgba(255,255,255,.16);
-        }
-        .brand small{ display:block; font-size:12px; color:var(--muted2); font-weight:650; margin-top:2px; }
-
-        .nav-links{
-          display:flex; gap: 10px; align-items:center; flex-wrap:wrap;
-          justify-content:flex-end;
-        }
-        .pill{
-          font-size:14px;
-          padding: 9px 12px;
-          border-radius:999px;
-          border:1px solid rgba(255,255,255,.10);
-          background: rgba(255,255,255,.04);
-          transition: transform .15s ease, background .15s ease, border-color .15s ease;
-          white-space:nowrap;
-        }
-        .pill:hover{
-          transform: translateY(-1px);
-          background: rgba(255,255,255,.07);
-          border-color: rgba(255,255,255,.16);
-          text-decoration:none;
-        }
-        .cta{
-          border-color: rgba(255,255,255,.18);
-          background: linear-gradient(135deg, rgba(116,247,208,.16), rgba(138,125,255,.16));
-        }
-
-        /* HERO */
-        .hero{ padding: 54px 0 18px; }
-        .hero-grid{
-          display:grid;
-          grid-template-columns: 1.15fr .85fr;
-          gap: 22px;
-          align-items:stretch;
-        }
-        @media (max-width: 980px){
-          .hero-grid{ grid-template-columns: 1fr; }
-        }
-
-        .kicker{
-          display:inline-flex; gap:10px; align-items:center;
-          padding: 9px 12px;
-          border-radius:999px;
-          border:1px solid rgba(255,255,255,.12);
-          background: rgba(255,255,255,.04);
-          color: var(--muted);
-          font-size: 13px;
-        }
-        .dot{
-          width:9px; height:9px; border-radius:99px;
-          background: linear-gradient(135deg, var(--mint), var(--violet));
-          box-shadow: 0 0 0 5px rgba(116,247,208,.08);
-        }
-
-        h1{
-          margin: 14px 0 10px;
-          font-size: clamp(30px, 4vw, 52px);
-          line-height: 1.05;
-          letter-spacing: -0.8px;
-        }
-        .lead{
-          margin:0;
-          color: var(--muted);
-          font-size: 16.5px;
-          line-height: 1.6;
-          max-width: 68ch;
-        }
-        .hero-actions{
-          display:flex; gap: 12px; flex-wrap:wrap;
-          margin-top: 18px;
-        }
-        .btn{
-          display:inline-flex; align-items:center; justify-content:center;
-          gap:10px;
-          padding: 12px 14px;
-          border-radius: 14px;
-          border: 1px solid rgba(255,255,255,.14);
-          background: rgba(255,255,255,.05);
-          font-weight: 750;
-          transition: transform .15s ease, background .15s ease, border-color .15s ease;
-        }
-        .btn:hover{
-          transform: translateY(-1px);
-          background: rgba(255,255,255,.08);
-          border-color: rgba(255,255,255,.20);
-          text-decoration:none;
-        }
-        .btn.primary{
-          border-color: rgba(255,255,255,.20);
-          background: linear-gradient(135deg, rgba(116,247,208,.18), rgba(138,125,255,.22));
-          box-shadow: 0 20px 70px rgba(138,125,255,.10);
-        }
-        .mini{ color: var(--muted2); font-size: 13px; margin-top: 10px; }
-
-        /* HERO CARD */
-        .hero-card{
-          border-radius: var(--r2);
-          border: 1px solid rgba(255,255,255,.14);
-          background: rgba(255,255,255,.04);
-          box-shadow: var(--shadow);
-          overflow:hidden;
-          position:relative;
-          min-height: 280px;
-        }
-        .hero-card:before{
-          content:"";
-          position:absolute; inset:-1px;
-          background: radial-gradient(520px 260px at 85% 25%, rgba(138,125,255,.14), transparent 60%),
-                      radial-gradient(500px 220px at 20% 15%, rgba(116,247,208,.11), transparent 60%);
-          opacity:.9;
-          z-index:0;
-        }
-        .hero-card-inner{ position:relative; z-index:1; padding: 18px; display:flex; flex-direction:column; gap: 14px; height:100%; }
-        .stat-grid{ display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .stat{
-          border-radius: 16px;
-          border: 1px solid rgba(255,255,255,.12);
-          background: rgba(0,0,0,.18);
-          padding: 12px;
-        }
-        .stat b{ display:block; font-size: 14px; margin-bottom: 6px; }
-        .stat span{ color: var(--muted); font-size: 13px; line-height: 1.45; }
-        .chips{ display:flex; flex-wrap:wrap; gap: 10px; margin-top:auto; }
-        .chip{
-          font-size: 12.5px;
-          color: var(--muted);
-          padding: 8px 10px;
-          border-radius: 999px;
-          border: 1px solid rgba(255,255,255,.12);
-          background: rgba(255,255,255,.04);
-        }
-
-        /* SECTIONS */
-        section{ padding: 34px 0; }
-        .section-head{
-          display:flex; align-items:flex-end; justify-content:space-between;
-          gap: 18px; margin-bottom: 14px;
-        }
-        h2{ margin:0; font-size: 24px; letter-spacing: -0.3px; }
-        .sub{
-          margin:0;
-          color: var(--muted);
-          line-height: 1.55;
-          max-width: 78ch;
-          font-size: 14.5px;
-        }
-
-        .grid{
-          display:grid;
-          grid-template-columns: repeat(12, 1fr);
-          gap: 14px;
-        }
-        .card{
-          border-radius: var(--r);
-          border: 1px solid rgba(255,255,255,.12);
-          background: rgba(255,255,255,.04);
-          box-shadow: 0 16px 40px rgba(0,0,0,.25);
-          overflow:hidden;
-        }
-        .pad{ padding: 16px; }
-        .muted{ color: var(--muted); }
-
-        /* Screenshot grid (export frames from Figma) */
-        .shots{ grid-column: span 12; }
-        .shot-grid{
-          display:grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 12px;
-          margin-top: 12px;
-        }
-        @media (max-width: 980px){ .shot-grid{ grid-template-columns: repeat(2, 1fr); } }
-        @media (max-width: 560px){ .shot-grid{ grid-template-columns: 1fr; } }
-
-        .shot{
-          border-radius: 18px;
-          border: 1px solid rgba(255,255,255,.12);
-          background: rgba(0,0,0,.22);
-          overflow:hidden;
-        }
-        .shot img{ width:100%; height:auto; display:block; }
-        .shot figcaption{
-          padding: 10px 12px;
-          color: var(--muted);
-          font-size: 13px;
-          border-top: 1px solid rgba(255,255,255,.08);
-        }
-
-        /* Figma embed */
-        .proto{ grid-column: span 5; }
-        .flow{ grid-column: span 7; }
-        @media (max-width: 980px){ .proto,.flow{ grid-column: span 12; } }
-
-        .iframe-wrap{
-          border-radius: 18px;
-          overflow:hidden;
-          border: 1px solid rgba(255,255,255,.12);
-          background: rgba(0,0,0,.25);
-          aspect-ratio: 16 / 10;
-        }
-        .iframe-wrap iframe{ width:100%; height:100%; border:0; }
-
-        /* Timeline */
-        .timeline{ grid-column: span 12; }
-        .t-row{
-          display:grid;
-          grid-template-columns: 140px 1fr;
-          gap: 14px;
-          padding: 12px;
-          border-radius: 16px;
-          border: 1px solid rgba(255,255,255,.10);
-          background: rgba(0,0,0,.18);
-          margin-top: 10px;
-        }
-        @media (max-width: 640px){
-          .t-row{ grid-template-columns: 1fr; }
-        }
-        .t-date{
-          font-weight: 850;
-          color: rgba(255,255,255,.88);
-        }
-        .t-body b{ display:block; margin-bottom:6px; }
-        .t-body ul{
-          margin: 0;
-          padding-left: 18px;
-          color: var(--muted);
-          line-height: 1.7;
-          font-size: 14px;
-        }
-
-        /* Lists */
-        ul.clean{
-          margin: 10px 0 0;
-          padding-left: 18px;
-          color: var(--muted);
-          line-height: 1.7;
-          font-size: 14px;
-        }
-
-        /* Footer */
-        footer{
-          border-top: 1px solid rgba(255,255,255,.10);
-          padding: 26px 0 44px;
-          color: var(--muted2);
-        }
-        .foot{
-          display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap;
-          align-items:center;
-        }
-        .small{ font-size: 12.5px; }
-
-        /* Selection / focus polish */
-        ::selection{ background: rgba(116,247,208,.22); }
-        :focus-visible{
-          outline: 2px solid rgba(116,247,208,.75);
-          outline-offset: 2px;
-          border-radius: 12px;
-        }
-    </style>
+    <link rel="stylesheet" href="assets/style.css" />
 </head>
 
 <body>
-<header class="nav">
-    <div class="wrap nav-inner">
+<a class="skip-link" href="#main">Skip to content</a>
+
+<header class="site-header">
+    <div class="container header-inner">
         <div class="brand">
-            <div class="logo" aria-hidden="true"></div>
-            <div style="line-height:1.05">
-                <div>NEOKey</div>
-                <small>Project Documentation</small>
+            <div class="logo" aria-hidden="true">N</div>
+            <div class="brand-text">
+                <div class="brand-title">NEOKey</div>
+                <div class="brand-subtitle">Offline-first authentication app</div>
             </div>
         </div>
 
-        <nav class="nav-links" aria-label="Primary">
-            <a class="pill" href="#overview">Overview</a>
-            <a class="pill" href="#screens">Screens</a>
-            <a class="pill" href="#architecture">Architecture</a>
-            <a class="pill" href="#security">Security</a>
-            <a class="pill" href="#testing">User Testing</a>
-            <a class="pill" href="#timeline">Timeline</a>
-            <a class="pill cta" href="https://github.com/MaximPollak/CCL3-WS2025" target="_blank" rel="noreferrer">View Repo</a>
+        <nav class="nav" aria-label="Primary">
+            <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="navLinks">
+                Menu
+            </button>
+            <div class="nav-links" id="navLinks">
+                <a href="#app-info" class="nav-link">App info</a>
+                <a href="#usability" class="nav-link">Usability test plan</a>
+                <a href="#dev-docs" class="nav-link">Development documentation</a>
+            </div>
         </nav>
     </div>
 </header>
 
-<main>
-    <!-- HERO -->
-    <section class="hero" id="overview">
-        <div class="wrap hero-grid">
-            <div>
-                <div class="kicker"><span class="dot" aria-hidden="true"></span> Offline-first • Encrypted • Quick daily UX</div>
-                <h1>Secure secrets — designed like an Android app, documented like a real project.</h1>
-                <p class="lead">
-                    NEOKey is an offline-first Android authenticator for storing secrets and generating strong passwords.
-                    Sensitive data is encrypted at rest and unlocking supports biometrics with a master PIN fallback.
-                    This page documents the concept, UI flow, tech decisions, security considerations, and testing outcomes.
-                </p>
+<main id="main">
+    <section class="hero">
+        <div class="container hero-inner">
+            <h1>NEOKey</h1>
+            <p class="lead">
+                An offline-first Android authentication app that securely stores and manages secrets and generated passwords.
+                All sensitive data is encrypted at rest and can be unlocked using biometrics or a master pincode.
+            </p>
 
-                <div class="hero-actions">
-                    <a class="btn primary" href="#screens">See screens & flow →</a>
-                    <a class="btn" href="#timeline">Read development timeline</a>
-                </div>
-
-                <div class="mini">CCL3 WS2025/26 • Team: Timon Schneider & Maxim Pollák</div>
+            <div class="hero-actions">
+                <a class="button primary" href="#app-info">Explore the project</a>
+                <a
+                        class="button"
+                        href="https://www.figma.com/proto/DbWLH6FjqRhIzv348Sdi6t/CCL_Prototype?page-id=8%3A2&node-id=13-2&p=f&viewport=-571%2C-171%2C0.36&t=QjuQRp3v8rH6H9SL-1&scaling=min-zoom&content-scaling=fixed"
+                        target="_blank"
+                        rel="noreferrer"
+                >
+                    Open prototype (Figma)
+                </a>
             </div>
 
-            <aside class="hero-card" aria-label="Highlights">
-                <div class="hero-card-inner">
-                    <div class="stat-grid">
-                        <div class="stat">
-                            <b>Offline-first vault</b>
-                            <span>No internet needed — data stays on-device.</span>
-                        </div>
-                        <div class="stat">
-                            <b>Encrypted at rest</b>
-                            <span>Secrets remain protected in storage.</span>
-                        </div>
-                        <div class="stat">
-                            <b>Biometric unlock</b>
-                            <span>Fast unlock with PIN fallback.</span>
-                        </div>
-                        <div class="stat">
-                            <b>Password generator</b>
-                            <span>Strong passwords with quick copy.</span>
-                        </div>
-                    </div>
-
-                    <div class="chips" aria-label="Tech chips">
-                        <span class="chip">Kotlin</span>
-                        <span class="chip">Jetpack Compose</span>
-                        <span class="chip">Room / SQLite</span>
-                        <span class="chip">Biometrics</span>
-                        <span class="chip">Encryption</span>
+            <div class="meta-grid" role="list">
+                <div class="meta-card" role="listitem">
+                    <div class="meta-k">Team</div>
+                    <div class="meta-v">
+                        Timon Schneider — cc241026<br />
+                        Maxim Pollák — cc241059
                     </div>
                 </div>
-            </aside>
+                <div class="meta-card" role="listitem">
+                    <div class="meta-k">Platform</div>
+                    <div class="meta-v">Android (Kotlin, Jetpack Compose)</div>
+                </div>
+                <div class="meta-card" role="listitem">
+                    <div class="meta-k">Core promise</div>
+                    <div class="meta-v">Fast access + strong local encryption (offline-first)</div>
+                </div>
+            </div>
         </div>
     </section>
 
-    <!-- SCREENS -->
-    <section id="screens">
-        <div class="wrap">
-            <div class="section-head">
-                <div>
-                    <h2>Screens & User Flow</h2>
-                    <p class="sub">
-                        The UI is built around a quick flow: unlock → entries list → entry details → add/edit wizard.
-                        Secrets stay hidden by default, and common actions are one-tap (reveal / copy / edit).
+    <!-- APP INFO -->
+    <section id="app-info" class="section">
+        <div class="container">
+            <header class="section-header">
+                <h2>App info</h2>
+                <p class="section-subtitle">What NEOKey is, who it’s for, and how it works.</p>
+            </header>
+
+            <div class="grid two">
+                <article class="card">
+                    <h3>Brief description</h3>
+                    <p>
+                        NEOKey is an offline-first Android authentication app that securely stores and manages secrets and
+                        generated passwords. All sensitive data is encrypted at rest and can be unlocked using biometrics or a
+                        master pincode.
                     </p>
-                </div>
+                </article>
+
+                <article class="card">
+                    <h3>Goal</h3>
+                    <p>
+                        Provide a fast, simple, and secure way to store and use authentication codes and passwords without
+                        requiring internet access, while keeping sensitive data encrypted and protected by biometric unlock and
+                        a master pincode.
+                    </p>
+                </article>
             </div>
 
-            <div class="grid">
-                <div class="card pad flow">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+            <div class="grid two">
+                <article class="card">
+                    <h3>Use case</h3>
+                    <p>A user wants to:</p>
+                    <ul>
+                        <li>store multiple authentication entries (e.g., services, accounts, shared secrets, passwords)</li>
+                        <li>organize them in categories</li>
+                        <li>quickly reveal/hide codes when needed</li>
+                        <li>generate strong passwords inside the app</li>
+                        <li>(Nice-to-Have) share passwords with others</li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <h3>Target users</h3>
+                    <ul>
+                        <li>Students and everyday users who manage many accounts and want a secure offline solution</li>
+                        <li>Security-conscious users who prefer local storage and encryption</li>
+                        <li>Users who want quick access with biometric unlock (fingerprint/face)</li>
+                        <li>Users who want the option to share passwords securely</li>
+                    </ul>
+                </article>
+            </div>
+
+            <div class="grid two">
+                <article class="card">
+                    <h3>Core features</h3>
+                    <ul class="chips">
+                        <li>Full CRUD (Create / Read / Update / Delete) encrypted entries</li>
+                        <li>Local SQLite database (Room)</li>
+                        <li>Jetpack Compose UI (no XML)</li>
+                        <li>Reveal / hide stored codes</li>
+                        <li>Built-in secure password generator</li>
+                        <li>Password strength meter (weak → medium → strong)</li>
+                        <li>Offline-first design (no internet required)</li>
+                        <li>Biometric unlock (fingerprint / face)</li>
+                        <li>Encryption &amp; decryption</li>
+                        <li>Categories for organization</li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <h3>Tech stack</h3>
+                    <ul>
+                        <li>Kotlin</li>
+                        <li>Jetpack Compose</li>
+                        <li>Room (SQLite)</li>
+                        <li>Offline-first architecture</li>
+                        <li>Encryption layer (e.g., Android Keystore + encrypted data)</li>
+                    </ul>
+                </article>
+            </div>
+
+            <article class="card">
+                <h3>Hi-Fi Prototype (User Flow)</h3>
+                <div class="flow">
+                    <ol class="flow-list">
+                        <li>
+                            <strong>App Launch → Unlock</strong>
+                            <ul>
+                                <li>Biometric authentication (fingerprint/face)</li>
+                                <li>Fallback PIN/password if biometrics fail</li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <strong>Home – Entries List</strong>
+                            <ul>
+                                <li>Service/label + category</li>
+                                <li>Quick actions: reveal/hide, search, filter, add new entry</li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <strong>Entry Details</strong>
+                            <ul>
+                                <li>Label, username (optional), secret/code (hidden by default), strength indicator, notes</li>
+                                <li>Actions: reveal/hide, copy, edit, delete</li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <strong>Add / Edit Entry (Wizard Form)</strong>
+                            <ul>
+                                <li>Step-by-step wizard</li>
+                                <li>Fields: label/service, secret/code (with strength meter), category, notes (optional)</li>
+                            </ul>
+                        </li>
+
+                        <li>
+                            <strong>Password Generator</strong>
+                            <ul>
+                                <li>Adjustable options (length, symbols, numbers)</li>
+                                <li>Strength meter + copy + insert into entry form</li>
+                            </ul>
+                        </li>
+                    </ol>
+
+                    <div class="callout">
+                        <div class="callout-title">Prototype link</div>
+                        <a
+                                href="https://www.figma.com/proto/DbWLH6FjqRhIzv348Sdi6t/CCL_Prototype?page-id=8%3A2&node-id=13-2&p=f&viewport=-571%2C-171%2C0.36&t=QjuQRp3v8rH6H9SL-1&scaling=min-zoom&content-scaling=fixed"
+                                target="_blank"
+                                rel="noreferrer"
+                        >
+                            Open the Hi-Fi prototype on Figma
+                        </a>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <!-- USABILITY -->
+    <section id="usability" class="section alt">
+        <div class="container">
+            <header class="section-header">
+                <h2>Usability test plan</h2>
+                <p class="section-subtitle">Summative evaluation plan + earlier heuristic/formative findings.</p>
+            </header>
+
+            <div class="grid two">
+                <article class="card">
+                    <h3>1. Introduction</h3>
+                    <ul>
+                        <li>Formative user testing and expert-based heuristic evaluation conducted early in development.</li>
+                        <li>Findings used to iteratively improve NeoKey.</li>
+                        <li>
+                            This summative test evaluates the final implemented version and validates whether improvements were
+                            successful.
+                        </li>
+                        <li>Assesses usability, efficiency, and user satisfaction.</li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <h3>2. System overview</h3>
+                    <dl class="dl">
                         <div>
-                            <div style="font-weight:850; letter-spacing:-.2px;">Core flow (documentation)</div>
-                            <div class="muted" style="font-size:13px; margin-top:4px;">
-                                Keep it fast, safe, and predictable (especially around back navigation).
-                            </div>
+                            <dt>System name</dt>
+                            <dd>NeoKey</dd>
                         </div>
-                        <a class="pill" href="https://www.figma.com/" target="_blank" rel="noreferrer">Figma link (replace)</a>
+                        <div>
+                            <dt>Version / state</dt>
+                            <dd>
+                                Hi-fi prototype (heuristic evaluation)<br />
+                                Fully implemented Android app (summative test) with CRUD + encrypted local storage
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>Description</dt>
+                            <dd>
+                                Offline-first password manager to securely store, view, edit, and delete credentials. Unlock via
+                                biometrics or master PIN.
+                            </dd>
+                        </div>
+                        <div>
+                            <dt>Target users</dt>
+                            <dd>
+                                Students/everyday users • Security-conscious offline users • Users valuing quick biometric access
+                            </dd>
+                        </div>
+                    </dl>
+                </article>
+            </div>
+
+            <article class="card">
+                <h3>3. Heuristic evaluation</h3>
+
+                <div class="grid two tight">
+                    <div>
+                        <h4>Method</h4>
+                        <p>Nielsen’s 10 Usability Heuristics.</p>
+
+                        <h4>Evaluators</h4>
+                        <ul>
+                            <li>Maxim Pollák</li>
+                            <li>Timon Schneider</li>
+                        </ul>
+
+                        <h4>Procedure</h4>
+                        <ul>
+                            <li>Independent reviews while performing representative tasks</li>
+                            <li>Issues mapped to heuristics + severity rating</li>
+                            <li>Consolidated into final issue list</li>
+                        </ul>
                     </div>
 
-                    <ul class="clean">
-                        <li><b>Unlock</b> using biometrics, with a PIN fallback for reliability.</li>
-                        <li><b>Home / Entries list</b> shows services + categories and supports search/filter.</li>
-                        <li><b>Entry details</b> keeps secrets hidden by default; reveal/copy/edit/delete from one place.</li>
-                        <li><b>Add/Edit wizard</b> guides users step-by-step (service → secret → category → notes).</li>
-                        <li><b>Password generator</b> creates strong passwords with one-tap copy/insert.</li>
+                    <div class="mini-card">
+                        <h4>Nielsen’s 10 heuristics</h4>
+                        <ol class="small">
+                            <li>Visibility of system status</li>
+                            <li>Match between system and the real world</li>
+                            <li>User control and freedom</li>
+                            <li>Consistency and standards</li>
+                            <li>Error prevention</li>
+                            <li>Recognition rather than recall</li>
+                            <li>Flexibility and efficiency of use</li>
+                            <li>Aesthetic and minimalist design</li>
+                            <li>Help users recognize, diagnose, recover from errors</li>
+                            <li>Help and documentation</li>
+                        </ol>
+                    </div>
+                </div>
+
+                <h4>Identified issues (summary)</h4>
+                <div class="table-wrap" role="region" aria-label="Heuristic issues table" tabindex="0">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>Problem description</th>
+                            <th>Heuristic</th>
+                            <th>Severity</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>Create a new password entry using a multi-step wizard without confusion or errors</td>
+                            <td>H1</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Create a new password entry using a multi-step wizard without confusion or errors</td>
+                            <td>H5</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Locate an existing entry using navigation, search, and filters efficiently</td>
+                            <td>H6</td>
+                            <td>4</td>
+                        </tr>
+                        <tr>
+                            <td>Locate an existing entry using navigation, search, and filters efficiently</td>
+                            <td>H7</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Edit and delete entries, especially irreversible actions</td>
+                            <td>H3</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Edit and delete entries, especially irreversible actions</td>
+                            <td>H5</td>
+                            <td>3</td>
+                        </tr>
+                        <tr>
+                            <td>Measure perceived usability, confidence, and satisfaction after tasks</td>
+                            <td>H4</td>
+                            <td>2</td>
+                        </tr>
+                        <tr>
+                            <td>Measure perceived usability, confidence, and satisfaction after tasks</td>
+                            <td>H8</td>
+                            <td>1</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="note">
+                    <strong>Severity scale:</strong> 1 Minor • 2 Low-impact • 3 Moderate • 4 Major • 5 Critical
+                </div>
+
+                <h4>Formative user testing results</h4>
+                <ul>
+                    <li>
+                        Onboarding perceived as unnecessary/insufficiently welcoming; users preferred immediate biometric auth
+                        (maybe with short welcome).
+                    </li>
+                    <li>Categories screen lacked search → extra navigation steps.</li>
+                    <li>Editing redirected into full creation wizard → inefficient/confusing.</li>
+                    <li>Long-press secret editing was not discoverable for all users.</li>
+                </ul>
+
+                <h4>Summary</h4>
+                <p>
+                    Core functionality is generally usable with low-to-moderate issues. The most severe problems were in
+                    information retrieval (H6/H7). Entry creation and data management issues mainly affected feedback clarity
+                    and error prevention. Visual design issues were minor.
+                </p>
+            </article>
+
+            <div class="grid two">
+                <article class="card">
+                    <h3>4. Research goals</h3>
+                    <h4>Overall</h4>
+                    <p>Evaluate whether NeoKey enables users to manage passwords effectively, efficiently, and with high satisfaction.</p>
+                    <h4>Specific objectives</h4>
+                    <ul>
+                        <li>Evaluate entry creation using the multi-step wizard</li>
+                        <li>Measure how efficiently users can find existing entries</li>
+                        <li>Assess usability of editing and deleting entries</li>
+                        <li>Measure overall perceived usability and confidence</li>
                     </ul>
+                </article>
 
-                    <div class="muted" style="font-size:13px; margin-top:12px;">
-                        Tip: Export 4–8 key frames from Figma and place them in <code>/assets/screens/</code>.
+                <article class="card">
+                    <h3>5. Hypotheses</h3>
+                    <div class="stack">
+                        <div class="pill">
+                            <strong>H1 — Entry creation:</strong> Users can create an entry without major errors.
+                        </div>
+                        <div class="pill">
+                            <strong>H2 — Information retrieval:</strong> Users can locate an existing entry efficiently.
+                        </div>
+                        <div class="pill">
+                            <strong>H3 — Password visibility:</strong> Users understand reveal and trust the interaction.
+                        </div>
+                        <div class="pill">
+                            <strong>H4 — Copying passwords:</strong> Users understand copying vs revealing + clipboard behavior.
+                        </div>
                     </div>
-                </div>
+                </article>
+            </div>
 
-                <div class="card pad proto">
-                    <div style="font-weight:850; letter-spacing:-.2px;">Prototype embed</div>
-                    <div class="muted" style="font-size:13px; margin-top:4px;">Replace the embed URL with your real prototype.</div>
-                    <div style="height:12px;"></div>
+            <div class="grid two">
+                <article class="card">
+                    <h3>6. Variables &amp; data collection</h3>
+                    <h4>Dependent variables</h4>
+                    <ul>
+                        <li>Task completion rate</li>
+                        <li>Task completion time</li>
+                        <li>Error rate</li>
+                        <li>User satisfaction / perceived usability</li>
+                    </ul>
+                    <h4>Data types</h4>
+                    <ul>
+                        <li><strong>Quantitative:</strong> time on task, success/failure, questionnaire scores</li>
+                        <li><strong>Qualitative:</strong> think-aloud, observations, post-test feedback</li>
+                    </ul>
+                </article>
 
-                    <div class="iframe-wrap" aria-label="Figma prototype embed">
-                        <iframe
-                                title="NEOKey Prototype"
-                                loading="lazy"
-                                src="https://www.figma.com/embed?embed_host=share&url=https%3A%2F%2Fwww.figma.com%2F"
-                                allowfullscreen
-                        ></iframe>
-                    </div>
-
-                    <div class="muted" style="font-size:12.5px; margin-top:10px; line-height:1.5;">
-                        If embeds are blocked, add a button that opens the prototype in a new tab.
-                    </div>
-                </div>
-
-                <div class="card pad shots">
-                    <div style="font-weight:850; letter-spacing:-.2px;">Screens (exported)</div>
-                    <div class="muted" style="font-size:13px; margin-top:4px;">
-                        Replace these placeholders with your exported PNGs/JPGs.
-                    </div>
-
-                    <div class="shot-grid">
-                        <figure class="shot">
-                            <img src="assets/screens/01-home.png" alt="Home / entries list screen (placeholder)" />
-                            <figcaption>Home — Entries list</figcaption>
-                        </figure>
-                        <figure class="shot">
-                            <img src="assets/screens/02-add-service.png" alt="Add entry step 1 (placeholder)" />
-                            <figcaption>Add entry — Service info</figcaption>
-                        </figure>
-                        <figure class="shot">
-                            <img src="assets/screens/03-add-password.png" alt="Add entry step 2 (placeholder)" />
-                            <figcaption>Add entry — Password / secret</figcaption>
-                        </figure>
-                        <figure class="shot">
-                            <img src="assets/screens/04-add-category.png" alt="Add entry step 3 (placeholder)" />
-                            <figcaption>Add entry — Category</figcaption>
-                        </figure>
-                    </div>
-                </div>
+                <article class="card">
+                    <h3>7–10. Method + procedure</h3>
+                    <ul>
+                        <li><strong>Evaluation type:</strong> Summative usability test (final version after formative improvements)</li>
+                        <li><strong>Setting:</strong> Controlled environment (classroom / supervised)</li>
+                        <li><strong>Participants:</strong> 5–8 students, general smartphone experience, no prior NeoKey knowledge</li>
+                        <li><strong>Instruments:</strong> Task success/time/errors + Think-aloud; SEQ after tasks; SUS post-study</li>
+                        <li><strong>Procedure:</strong> Consent → Short intro → Tasks → SEQ each → SUS → Interview/debrief</li>
+                        <li><strong>Expected outcomes:</strong> Most tasks completed successfully; retrieval may need minor refinement; high satisfaction/confidence expected</li>
+                    </ul>
+                </article>
             </div>
         </div>
     </section>
 
-    <!-- ARCHITECTURE -->
-    <section id="architecture">
-        <div class="wrap">
-            <div class="section-head">
-                <div>
-                    <h2>Architecture & Tech</h2>
-                    <p class="sub">
-                        This section should explain how the app is structured and where the “secure storage” responsibilities live.
-                        (Once you send your code, I’ll rewrite this to match your actual packages/classes.)
-                    </p>
-                </div>
-            </div>
+    <!-- DEV DOCS -->
+    <section id="dev-docs" class="section">
+        <div class="container">
+            <header class="section-header">
+                <h2>Development documentation</h2>
+                <p class="section-subtitle">Implementation timeline (12.1.2026 → 19.1.2026) + commits.</p>
+            </header>
 
-            <div class="grid">
-                <div class="card pad" style="grid-column: span 7;">
-                    <div style="font-weight:850; letter-spacing:-.2px;">High-level components</div>
-                    <ul class="clean">
-                        <li><b>UI layer (Compose)</b> — screens, navigation, input validation, snackbars/toasts.</li>
-                        <li><b>Domain layer</b> — business rules (create/update entries, generator rules).</li>
-                        <li><b>Data layer (Room)</b> — local persistence, DAOs, entities.</li>
-                        <li><b>Security utilities</b> — encryption/decryption, key handling, biometric gating.</li>
-                    </ul>
-                </div>
-
-                <div class="card pad" style="grid-column: span 5;">
-                    <div style="font-weight:850; letter-spacing:-.2px;">Tech stack (fill in)</div>
-                    <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:10px;">
-                        <span class="chip">Kotlin</span>
-                        <span class="chip">Jetpack Compose</span>
-                        <span class="chip">Room (SQLite)</span>
-                        <span class="chip">Biometrics</span>
-                        <span class="chip">Android Keystore</span>
-                        <span class="chip">Encryption layer</span>
-                    </div>
-
-                    <div class="muted" style="margin-top:12px; font-size:13px; line-height:1.6;">
-                        Add: libraries, min SDK, build setup, and how you run it locally.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- SECURITY -->
-    <section id="security">
-        <div class="wrap">
-            <div class="section-head">
-                <div>
-                    <h2>Security Notes</h2>
-                    <p class="sub">
-                        Document your security decisions and what issues you found + fixed.
-                        Keep it honest and practical (what you protected against, and what is out of scope).
-                    </p>
-                </div>
-            </div>
-
-            <div class="grid">
-                <div class="card pad" style="grid-column: span 6;">
-                    <div style="font-weight:850; letter-spacing:-.2px;">What we protect</div>
-                    <ul class="clean">
-                        <li>Secrets should not be stored in plaintext on disk.</li>
-                        <li>App should require authentication before revealing/copying secrets.</li>
-                        <li>Back navigation should not expose invalid states or bypass locks.</li>
-                    </ul>
-                </div>
-
-                <div class="card pad" style="grid-column: span 6;">
-                    <div style="font-weight:850; letter-spacing:-.2px;">Implementation checklist (adapt later)</div>
-                    <ul class="clean">
-                        <li>Encrypt before writing to Room; decrypt only when needed.</li>
-                        <li>Use Keystore-backed key material (avoid hardcoding secrets).</li>
-                        <li>Biometric prompt with fallback (PIN/password).</li>
-                        <li>Mask secrets by default; explicit “reveal” action.</li>
-                        <li>Defensive navigation (handle spam/back/edge cases).</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- TESTING -->
-    <section id="testing">
-        <div class="wrap">
-            <div class="section-head">
-                <div>
-                    <h2>User Testing</h2>
-                    <p class="sub">
-                        Summarize your test plan + what changed after feedback. This makes the project feel “real” fast.
-                    </p>
-                </div>
-            </div>
-
-            <div class="grid">
-                <div class="card pad" style="grid-column: span 7;">
-                    <div style="font-weight:850; letter-spacing:-.2px;">Test plan (summary)</div>
-                    <ul class="clean">
-                        <li>Can users add an entry without help?</li>
-                        <li>Do users understand reveal/hide and copy actions?</li>
-                        <li>Can users find entries via search and category filters?</li>
-                        <li>Do users feel safe/confident (biometrics + PIN fallback)?</li>
-                    </ul>
-                </div>
-
-                <div class="card pad" style="grid-column: span 5;">
-                    <div style="font-weight:850; letter-spacing:-.2px;">Outcome (fill in)</div>
-                    <div class="muted" style="margin-top:10px; line-height:1.65;">
-                        Add 3–6 bullet points: what feedback you got and which changes you implemented.
-                        Example: clearer labels, better back handling, faster “copy” affordance, etc.
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- TIMELINE -->
-    <section id="timeline">
-        <div class="wrap">
-            <div class="section-head">
-                <div>
-                    <h2>Development Timeline</h2>
-                    <p class="sub">
-                        A short log of what you built each day and what problems you discovered and solved.
-                    </p>
-                </div>
-            </div>
-
-            <div class="grid">
-                <div class="card pad timeline">
-                    <div style="font-weight:850; letter-spacing:-.2px;">12.1.2026 → 19.1.2026</div>
-
-                    <div class="t-row">
+            <article class="card">
+                <h3>Timeline</h3>
+                <div class="timeline">
+                    <div class="t-item">
                         <div class="t-date">12.1.2026</div>
                         <div class="t-body">
-                            <b>Base + database redesign</b>
+                            <strong>Base + database redesign</strong>
                             <ul>
                                 <li>Adopted an existing project codebase as the CCL3 foundation.</li>
                                 <li>Rebuilt the database to match the app design.</li>
@@ -641,34 +477,36 @@
                         </div>
                     </div>
 
-                    <div class="t-row">
+                    <div class="t-item">
                         <div class="t-date">13.1.2026</div>
                         <div class="t-body">
-                            <b>Domain layer + utilities + first screens</b>
+                            <strong>Domain layer + utilities + first screens</strong>
                             <ul>
                                 <li>Implemented domain layer and shared utilities.</li>
                                 <li>Integrated biometric utilities.</li>
-                                <li>Started UI: <span class="muted">SecretsScreen</span> and <span class="muted">SecretDetailScreen</span>.</li>
+                                <li>Started UI: SecretsScreen and SecretDetailScreen.</li>
                             </ul>
                         </div>
                     </div>
 
-                    <div class="t-row">
+                    <div class="t-item">
                         <div class="t-date">14.1.2026</div>
                         <div class="t-body">
-                            <b>Security upgrades + finishing screens + stress testing</b>
+                            <strong>Security upgrades + finishing screens + stress testing</strong>
                             <ul>
                                 <li>Reviewed security and fixed potential issues (hardening the app).</li>
                                 <li>Completed remaining screens.</li>
-                                <li>Stress tests with tutors revealed bugs (e.g., back button spamming causing invalid screens).</li>
+                                <li>
+                                    Stress tests with tutors revealed bugs (e.g., back button spamming causing invalid screens).
+                                </li>
                             </ul>
                         </div>
                     </div>
 
-                    <div class="t-row">
+                    <div class="t-item">
                         <div class="t-date">15.1.2026</div>
                         <div class="t-body">
-                            <b>User test plan + recovery day</b>
+                            <strong>User test plan + recovery day</strong>
                             <ul>
                                 <li>Discussed the user test plan and scenarios.</li>
                                 <li>Lower-intensity day after the first implementation sprint.</li>
@@ -676,10 +514,10 @@
                         </div>
                     </div>
 
-                    <div class="t-row">
+                    <div class="t-item">
                         <div class="t-date">16.1.2026</div>
                         <div class="t-body">
-                            <b>Bug fixing + first user tests</b>
+                            <strong>Bug fixing + first user tests</strong>
                             <ul>
                                 <li>Fixed discovered bugs and polished edge cases.</li>
                                 <li>Ran setup and conducted the first two user tests.</li>
@@ -688,76 +526,50 @@
                         </div>
                     </div>
 
-                    <div class="t-row">
+                    <div class="t-item">
                         <div class="t-date">19.1.2026</div>
                         <div class="t-body">
-                            <b>Continued user testing</b>
+                            <strong>Continued user testing</strong>
                             <ul>
                                 <li>Completed additional user tests with the selected participants.</li>
                                 <li>Collected and summarized feedback for final refinements.</li>
                             </ul>
                         </div>
                     </div>
-
-                    <div class="muted" style="margin-top:12px; font-size:13px; line-height:1.6;">
-                        Tip: add small “evidence” links per day (PRs/commits, screenshots, or issues) once you share your repo structure.
-                    </div>
                 </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- TEAM -->
-    <section id="team">
-        <div class="wrap">
-            <div class="section-head">
-                <div>
-                    <h2>Team</h2>
-                    <p class="sub">Built by students as part of CCL3.</p>
+                <div class="callout">
+                    <div class="callout-title">Commits</div>
+                    <a href="https://github.com/MaximPollak/CCL3-WS2025/commits/main/" target="_blank" rel="noreferrer">
+                        View commit history on GitHub
+                    </a>
                 </div>
-            </div>
-
-            <div class="grid">
-                <div class="card pad" style="grid-column: span 12;">
-                    <div style="display:flex; flex-wrap:wrap; gap:12px; justify-content:space-between; align-items:flex-start;">
-                        <div>
-                            <div style="font-weight:850; letter-spacing:-.2px;">NEOKey</div>
-                            <div class="muted" style="margin-top:6px; line-height:1.6;">
-                                Team members: <b>Timon Schneider</b> & <b>Maxim Pollák</b>.
-                            </div>
-                            <div class="small muted" style="margin-top:10px;">
-                                Repo: <a href="https://github.com/MaximPollak/CCL3-WS2025" target="_blank" rel="noreferrer">github.com/MaximPollak/CCL3-WS2025</a>
-                            </div>
-                        </div>
-
-                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                            <a class="btn primary" href="https://github.com/MaximPollak/CCL3-WS2025" target="_blank" rel="noreferrer">View Repo</a>
-                            <a class="btn" href="#overview">Back to top</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            </article>
         </div>
     </section>
 </main>
 
-<footer>
-    <div class="wrap foot">
-        <div class="brand" style="gap:10px;">
-            <div class="logo" aria-hidden="true" style="width:30px;height:30px;border-radius:11px;"></div>
-            <div class="small">© <span id="y"></span> NEOKey — Project Documentation</div>
+<footer class="site-footer">
+    <div class="container footer-inner">
+        <div>
+            <strong>NEOKey</strong> — project website for GitHub Pages
+            <div class="muted">© 2026 Timon Schneider &amp; Maxim Pollák</div>
         </div>
-        <div class="small">
-            Figma Prototype: <a href="https://www.figma.com/" target="_blank" rel="noreferrer">replace-link</a>
-            ·
-            License: <a href="https://github.com/MaximPollak/CCL3-WS2025" target="_blank" rel="noreferrer">MIT</a>
+        <div class="footer-links">
+            <a
+                    href="https://www.figma.com/proto/DbWLH6FjqRhIzv348Sdi6t/CCL_Prototype?page-id=8%3A2&node-id=13-2&p=f&viewport=-571%2C-171%2C0.36&t=QjuQRp3v8rH6H9SL-1&scaling=min-zoom&content-scaling=fixed"
+                    target="_blank"
+                    rel="noreferrer"
+            >Prototype</a
+            >
+            <a href="https://github.com/MaximPollak/CCL3-WS2025/commits/main/" target="_blank" rel="noreferrer"
+            >Commits</a
+            >
+            <a href="#main">Back to top</a>
         </div>
     </div>
 </footer>
 
-<script>
-    document.getElementById("y").textContent = new Date().getFullYear();
-</script>
+<script src="assets/script.js"></script>
 </body>
 </html>

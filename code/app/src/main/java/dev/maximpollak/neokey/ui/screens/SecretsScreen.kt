@@ -75,11 +75,14 @@ import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
 import dev.maximpollak.neokey.utils.ClearClipboardWorker
 import dev.maximpollak.neokey.utils.copySensitiveToClipboard
+import androidx.compose.foundation.combinedClickable
+
 @Composable
 fun SecretsScreen(
     onAddClick: () -> Unit,
     onBackClick: () -> Unit,
     onSecretClick: (Int) -> Unit,
+    onSecretLongPress: (Int) -> Unit,
     categoryFilter: String = "ALL"
 ) {
     val context = LocalContext.current
@@ -218,7 +221,8 @@ fun SecretsScreen(
                                 revealed[secret.id] = false
                             }
                         },
-                        onClick = { onSecretClick(secret.id) }
+                        onClick = { onSecretClick(secret.id) },
+                        onLongPress = { onSecretLongPress(secret.id) },
                     )
                 }
             }
@@ -304,7 +308,8 @@ private fun SecretListCard(
     displayPassword: String,
     onToggleReveal: () -> Unit,
     onCopyPassword: () -> Unit,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongPress: () -> Unit
 ) {
     val cardShape = RoundedCornerShape(22.dp)
     val surface = Color.White.copy(alpha = 0.05f)
@@ -316,10 +321,11 @@ private fun SecretListCard(
         modifier = Modifier
             .fillMaxWidth()
             .clip(cardShape)
-            .clickable(
+            .combinedClickable(
                 indication = null,
                 interactionSource = remember { MutableInteractionSource() },
-                onClick = onClick
+                onClick = onClick,
+                onLongClick = onLongPress
             )
             .border(1.dp, border, cardShape),
         shape = cardShape,

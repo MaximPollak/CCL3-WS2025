@@ -78,6 +78,7 @@ fun NavGraph() {
             SecretsScreen(
                 onAddClick = { navController.safeNavigate("add", navLock) },
                 onSecretClick = { id -> navController.safeNavigate("detail/$id", navLock) },
+                onSecretLongPress = { id -> navController.safeNavigate("edit/$id", navLock) },
                 onBackClick = { navController.safePopBackStack(navLock) },
                 categoryFilter = category
             )
@@ -87,7 +88,8 @@ fun NavGraph() {
             SecretsScreen(
                 onAddClick = { navController.safeNavigate("add", navLock) },
                 onSecretClick = { id -> navController.safeNavigate("detail/$id", navLock) },
-                onBackClick = { navController.safePopBackStack(navLock) } // kept; still safe
+                onSecretLongPress = { id -> navController.safeNavigate("edit/$id", navLock) },
+                onBackClick = { navController.safePopBackStack(navLock) },
             )
         }
 

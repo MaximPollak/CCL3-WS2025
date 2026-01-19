@@ -35,6 +35,8 @@ import kotlin.math.max
 import kotlin.math.min
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.material.icons.filled.Refresh
+import dev.maximpollak.neokey.utils.generatePassword
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -133,14 +135,12 @@ fun EditSecretScreen(
 
         val updated: Secret = secretValue.copy(
             title = t,
-            account = CryptoManager.encrypt(u),
-            password = CryptoManager.encrypt(p),
-            note = note.takeIf { it.isNotBlank() }?.let { CryptoManager.encrypt(it) },
+            account = u,          // <- PLAINTEXT
+            password = p,         // <- PLAINTEXT
+            note = note.takeIf { it.isNotBlank() },
             category = category
         )
 
-        // ✅ Assumes you already have this (or similar) in your ViewModel/Repository.
-        // If your function name differs, rename this call.
         viewModel.updateSecret(updated)
 
         saving = false
@@ -289,6 +289,28 @@ fun EditSecretScreen(
                                 .clip(RoundedCornerShape(999.dp))
                                 .background(strength.color)
                         )
+                    }
+                    Spacer(Modifier.height(14.dp))
+
+                    OutlinedButton(
+                        onClick = {
+                            password = generatePassword(
+                                length = 12,
+                                upper = true,
+                                lower = true,
+                                digits = true,
+                                symbols = true
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Color(0xFF8E52F5)
+                        ),
+                        border = BorderStroke(1.dp, Color(0xFF8E52F5))
+                    ) {
+                        Icon(Icons.Filled.Refresh, contentDescription = null)
+                        Spacer(Modifier.width(8.dp))
+                        Text("Generate Strong Password")
                     }
                 }
 

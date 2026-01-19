@@ -1,13 +1,12 @@
 package dev.maximpollak.neokey.ui.screens
 
 import android.content.ClipData
-import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +33,8 @@ import androidx.compose.material.icons.outlined.ArrowBackIosNew
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
@@ -44,6 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -62,27 +64,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.work.ExistingWorkPolicy
-import androidx.work.OneTimeWorkRequestBuilder
-import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import androidx.work.workDataOf
 import dev.maximpollak.neokey.domain.model.Secret
 import dev.maximpollak.neokey.domain.model.SecretType
 import dev.maximpollak.neokey.security.CryptoManager
+import dev.maximpollak.neokey.utils.copySensitiveToClipboard
 import dev.maximpollak.neokey.viewmodel.SecretsViewModel
 import dev.maximpollak.neokey.viewmodel.SecretsViewModelFactory
-import dev.maximpollak.neokey.utils.ClearClipboardWorker
-import dev.maximpollak.neokey.utils.copySensitiveToClipboard
-import androidx.compose.foundation.combinedClickable
 
 @Composable
 fun SecretsScreen(
     onAddClick: () -> Unit,
     onBackClick: () -> Unit,
     onSecretClick: (Int) -> Unit,
-    onSecretLongPress: (Int) -> Unit,
+    onSecretLongPress: (Int) -> Unit, // EDIT route
     categoryFilter: String = "ALL"
 ) {
     val context = LocalContext.current
@@ -91,6 +87,10 @@ fun SecretsScreen(
 
     var query by remember { mutableStateOf("") }
     var backLocked by remember { mutableStateOf(false) }
+
+    // Long-press options dialog state (stores the secret id)
+    var optionsSecretId by remember { mutableStateOf<Int?>(null) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
 
     // which entries are currently revealed
     val revealed = remember { mutableStateMapOf<Int, Boolean>() }
@@ -222,7 +222,7 @@ fun SecretsScreen(
                             }
                         },
                         onClick = { onSecretClick(secret.id) },
-                        onLongPress = { onSecretLongPress(secret.id) },
+                        onLongPress = { optionsSecretId = secret.id }
                     )
                 }
             }
@@ -257,6 +257,89 @@ fun SecretsScreen(
                 imageVector = Icons.Outlined.Add,
                 contentDescription = "Add secret",
                 modifier = Modifier.size(34.dp)
+            )
+        }
+
+        // Long-press options dialog (Edit / Delete / Cancel)
+        if (optionsSecretId != null) {
+            val id = optionsSecretId!!
+
+            AlertDialog(
+                onDismissRequest = { optionsSecretId = null },
+                title = { Text("Entry options") },
+                text = { Text("What do you want to do?") },
+                confirmButton = {},
+                dismissButton = {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        TextButton(
+                            onClick = { optionsSecretId = null },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        ) {
+                            Text("Cancel")
+                        }
+
+                        TextButton(
+                            onClick = { showDeleteConfirm = true },
+                            modifier = Modifier.weight(1f),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Delete")
+                        }
+
+                        TextButton(
+                            onClick = {
+                                optionsSecretId = null
+                                onSecretLongPress(id)
+                            },
+                            modifier = Modifier.weight(1f),
+                        ) {
+                            Text("Edit")
+                        }
+                    }
+                }
+            )
+        }
+        if (showDeleteConfirm && optionsSecretId != null) {
+            val id = optionsSecretId!!
+
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirm = false },
+                title = { Text("Delete entry?") },
+                text = { Text("This cannot be undone.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val secretToDelete = secrets.firstOrNull { it.id == id }
+                            showDeleteConfirm = false
+                            optionsSecretId = null
+                            if (secretToDelete != null) {
+                                viewModel.deleteSecret(secretToDelete)
+                            }
+                        },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
+                    ) { Text("Delete") }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showDeleteConfirm = false },
+                        colors = ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    ) { Text("Cancel") }
+                }
             )
         }
     }
@@ -458,4 +541,3 @@ class ClearClipboardWorker(
         const val KEY_VALUE = "value"
     }
 }
-

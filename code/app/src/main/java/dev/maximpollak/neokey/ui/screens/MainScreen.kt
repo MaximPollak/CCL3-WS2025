@@ -111,19 +111,19 @@ fun MainScreen(
                             Icon(
                                 imageVector = Icons.Outlined.PhotoCamera,
                                 contentDescription = "Camera",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(28.dp)
                             )
                             Icon(
                                 imageVector = Icons.Outlined.Fingerprint,
                                 contentDescription = "Fingerprint",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(34.dp)
                             )
                             Icon(
                                 imageVector = Icons.Outlined.Pin,
                                 contentDescription = "Pin",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(34.dp)
                             )
                         }

@@ -465,7 +465,7 @@ private fun CategoryChipFigma(
                 SecretType.EDUCATION -> "Education"
                 SecretType.WIFI -> "WiFi"
                 SecretType.PRIVATE -> "Private"
-                SecretType.ELSE -> "Else"
+                SecretType.ELSE -> "Other"
             },
             color = neoMint,
             style = MaterialTheme.typography.bodyLarge,

@@ -66,9 +66,11 @@ fun NavGraph() {
         composable("categories") {
             CategoriesScreen(
                 onCategoryClick = { key -> navController.safeNavigate("secrets/$key", navLock) },
-                onAddClick = { navController.safeNavigate("add", navLock) }
+                onAddClick = { navController.safeNavigate("add", navLock) },
+                onSecretClick = { id -> navController.safeNavigate("detail/$id", navLock) }
             )
         }
+
 
         composable(
             route = "secrets/{category}",

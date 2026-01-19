@@ -182,7 +182,7 @@ fun MainScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
                     ) {
-                        Text("Device Secured Access")
+                        Text("Unlock with biometrics")
                     }
 
                     Spacer(Modifier.height(10.dp))

@@ -29,6 +29,31 @@ fun MainScreen(
 
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    fun startBiometricAuth() {
+        errorMessage = null
+
+        if (activity == null) {
+            errorMessage = "Biometric not available (no Activity)."
+            return
+        }
+
+        if (!BiometricAuth.canAuthenticate(activity)) {
+            errorMessage = "Biometric authentication is not set up on this device."
+            return
+        }
+
+        BiometricAuth.authenticate(
+            activity = activity,
+            onSuccess = onUnlocked,
+            onError = { msg -> errorMessage = msg },
+            onFailure = { }
+        )
+    }
+    LaunchedEffect(Unit) {
+        startBiometricAuth()
+    }
+
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier

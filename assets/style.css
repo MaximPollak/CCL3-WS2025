@@ -465,12 +465,15 @@ details.fold > *:not(summary) {
   .erd-link{ max-width: 100%; }
 }
 
+/* Timeline ERD link */
 .t-body a {
   color: var(--accent);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
+  transition: color 0.15s ease, text-decoration 0.15s ease;
 }
 
 .t-body a:hover {
   text-decoration: underline;
+  text-decoration-color: var(--accent);
 }

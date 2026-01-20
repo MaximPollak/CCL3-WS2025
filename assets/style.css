@@ -471,3 +471,38 @@ tr:last-child td { border-bottom: none; }
   color: var(--muted);
 }
 
+/* Collapsible timeline wrapper */
+details.fold {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(15, 17, 23, 0.55);
+  padding: 0.9rem 1rem;
+}
+
+details.fold > summary {
+  cursor: pointer;
+  font-weight: 900;
+  color: var(--text);
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+details.fold > summary::-webkit-details-marker { display: none; }
+
+details.fold > summary::before {
+  content: "›";
+  color: var(--accent-2);
+  font-size: 1.25rem;
+  transform: translateY(-1px);
+  transition: transform 160ms ease;
+}
+
+details.fold[open] > summary::before {
+  transform: rotate(90deg) translateY(-1px);
+}
+
+details.fold > *:not(summary) {
+  margin-top: 0.9rem;
+}

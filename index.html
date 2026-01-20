@@ -495,97 +495,99 @@
             </header>
 
             <article class="card">
-                <h3>Timeline</h3>
-                <div class="timeline">
-                    <div class="t-item">
-                        <div class="t-date">12.1.2026</div>
-                        <div class="t-body">
-                            <strong>Base + database redesign</strong>
-                            <ul>
-                                <li>Adopted an existing project codebase as the CCL3 foundation.</li>
-                                <li>Rebuilt the database to match the app design.</li>
-                                <li>Adjusted the schema after realizing the first design wasn’t optimal.</li>
-                            </ul>
+                <details class="fold" open>
+                    <summary>Timeline</summary>
+
+                    <div class="timeline">
+                        <div class="t-item">
+                            <div class="t-date">12.1.2026</div>
+                            <div class="t-body">
+                                <strong>Base + database redesign</strong>
+                                <ul>
+                                    <li>Adopted an existing project codebase as the CCL3 foundation.</li>
+                                    <li>Rebuilt the database to match the app design.</li>
+                                    <li>Adjusted the schema after realizing the first design wasn’t optimal.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="t-item">
+                            <div class="t-date">13.1.2026</div>
+                            <div class="t-body">
+                                <strong>Domain layer + utilities + first screens</strong>
+                                <ul>
+                                    <li>Implemented domain layer and shared utilities.</li>
+                                    <li>Integrated biometric utilities.</li>
+                                    <li>Started UI: SecretsScreen and SecretDetailScreen.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="t-item">
+                            <div class="t-date">14.1.2026</div>
+                            <div class="t-body">
+                                <strong>Security upgrades + finishing screens + stress testing</strong>
+                                <ul>
+                                    <li>Reviewed security and fixed potential issues (hardening the app).</li>
+                                    <li>Completed remaining screens.</li>
+                                    <li>Stress tests with tutors revealed bugs (e.g., back button spamming causing invalid screens).</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="t-item">
+                            <div class="t-date">15.1.2026</div>
+                            <div class="t-body">
+                                <strong>User test plan + recovery day</strong>
+                                <ul>
+                                    <li>Discussed the user test plan and scenarios.</li>
+                                    <li>Lower-intensity day after the first implementation sprint.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="t-item">
+                            <div class="t-date">16.1.2026</div>
+                            <div class="t-body">
+                                <strong>Bug fixing + formative user tests</strong>
+                                <ul>
+                                    <li>Fixed discovered bugs and polished edge cases.</li>
+                                    <li>Ran setup and conducted the three formative user tests.</li>
+                                    <li>Implemented small changes based on feedback.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="t-item">
+                            <div class="t-date">19.1.2026</div>
+                            <div class="t-body">
+                                <strong>Continued user testing</strong>
+                                <ul>
+                                    <li>Completed additional user tests with the selected participants.</li>
+                                    <li>Collected and summarized feedback for final refinements.</li>
+                                    <li>Implemented feedback - started with summative user testing.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="t-item">
+                            <div class="t-date">20.1.2026</div>
+                            <div class="t-body">
+                                <strong>Summative User testing + Interpretation of Test Results</strong>
+                                <ul>
+                                    <li>Conducted 8 User tests and started with the interpretation.</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="t-item">
-                        <div class="t-date">13.1.2026</div>
-                        <div class="t-body">
-                            <strong>Domain layer + utilities + first screens</strong>
-                            <ul>
-                                <li>Implemented domain layer and shared utilities.</li>
-                                <li>Integrated biometric utilities.</li>
-                                <li>Started UI: SecretsScreen and SecretDetailScreen.</li>
-                            </ul>
-                        </div>
+                    <div class="callout">
+                        <div class="callout-title">Commits</div>
+                        <a href="https://github.com/MaximPollak/CCL3-WS2025/commits/main/" target="_blank" rel="noreferrer">
+                            View commit history on GitHub
+                        </a>
                     </div>
-
-                    <div class="t-item">
-                        <div class="t-date">14.1.2026</div>
-                        <div class="t-body">
-                            <strong>Security upgrades + finishing screens + stress testing</strong>
-                            <ul>
-                                <li>Reviewed security and fixed potential issues (hardening the app).</li>
-                                <li>Completed remaining screens.</li>
-                                <li>
-                                    Stress tests with tutors revealed bugs (e.g., back button spamming causing invalid screens).
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="t-item">
-                        <div class="t-date">15.1.2026</div>
-                        <div class="t-body">
-                            <strong>User test plan + recovery day</strong>
-                            <ul>
-                                <li>Discussed the user test plan and scenarios.</li>
-                                <li>Lower-intensity day after the first implementation sprint.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="t-item">
-                        <div class="t-date">16.1.2026</div>
-                        <div class="t-body">
-                            <strong>Bug fixing + formative user tests</strong>
-                            <ul>
-                                <li>Fixed discovered bugs and polished edge cases.</li>
-                                <li>Ran setup and conducted the three formative user tests.</li>
-                                <li>Implemented small changes based on feedback.</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="t-item">
-                        <div class="t-date">19.1.2026</div>
-                        <div class="t-body">
-                            <strong>Continued user testing</strong>
-                            <ul>
-                                <li>Completed additional user tests with the selected participants.</li>
-                                <li>Collected and summarized feedback for final refinements.</li>
-                                <li>Implemented feedback - started with summative user testing.</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="t-item">
-                        <div class="t-date">20.1.2026</div>
-                        <div class="t-body">
-                            <strong>Summative User testing + Interpretation of Test Results</strong>
-                            <ul>
-                                <li>Conducted 8 User tests and started with the interpretation.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="callout">
-                    <div class="callout-title">Commits</div>
-                    <a href="https://github.com/MaximPollak/CCL3-WS2025/commits/main/" target="_blank" rel="noreferrer">
-                        View commit history on GitHub
-                    </a>
-                </div>
+                </details>
             </article>
 
         </div>

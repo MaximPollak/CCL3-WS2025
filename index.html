@@ -161,41 +161,80 @@
 
             <article class="card">
                 <h3>Hi-Fi Prototype (User Flow)</h3>
+                <p class="muted">Key steps of the flow paired with the corresponding hi-fi screens.</p>
 
-                <div class="flow">
-                    <ol class="flow-list">
-                        <li>
+                <div class="proto-flow">
+                    <!-- 1) Unlock -->
+                    <div class="proto-row">
+                        <a class="proto-image" href="assets/unlock.png" target="_blank" rel="noreferrer">
+                            <img src="assets/unlock.png" alt="Unlock screen (biometric + PIN fallback)" />
+                        </a>
+
+                        <div class="proto-text">
                             <strong>App Launch → Unlock</strong>
                             <ul>
                                 <li>Biometric authentication (fingerprint/face)</li>
                                 <li>Fallback PIN/password if biometrics fail</li>
                             </ul>
-                        </li>
+                        </div>
+                    </div>
 
-                        <li>
+                    <!-- 2) Entries list -->
+                    <div class="proto-row">
+                        <a class="proto-image" href="assets/list.png" target="_blank" rel="noreferrer">
+                            <img src="assets/list.png" alt="Entries list screen" />
+                        </a>
+
+                        <div class="proto-text">
                             <strong>Home – Entries List</strong>
                             <ul>
                                 <li>Service/label + category</li>
                                 <li>Quick actions: reveal/hide, search, filter, add new entry</li>
                             </ul>
-                        </li>
+                        </div>
+                    </div>
 
-                        <li>
+                    <!-- 3) Detail -->
+                    <div class="proto-row">
+                        <a class="proto-image" href="assets/detail.png" target="_blank" rel="noreferrer">
+                            <img src="assets/detail.png" alt="Entry details screen with reveal and copy actions" />
+                        </a>
+
+                        <div class="proto-text">
                             <strong>Entry Details</strong>
                             <ul>
                                 <li>Label, username (optional), secret/code (hidden by default), strength indicator, notes</li>
                                 <li>Actions: reveal/hide, copy, edit, delete</li>
                             </ul>
-                        </li>
+                        </div>
+                    </div>
 
-                        <li>
+                    <!-- 4) Wizard (4 steps) -->
+                    <div class="proto-row">
+                        <a class="proto-image" href="assets/wizard1.png" target="_blank" rel="noreferrer">
+                            <img src="assets/wizard1.png" alt="Add / Edit wizard step 1" />
+                        </a>
+
+                        <div class="proto-text">
                             <strong>Add / Edit Entry (Wizard Form)</strong>
                             <ul>
                                 <li>Step-by-step wizard</li>
-                                <li>Fields: label/service, secret/code, category, notes</li>
+                                <li>Fields: label/service, secret/code, category, notes (optional)</li>
                             </ul>
-                        </li>
-                    </ol>
+
+                            <div class="proto-mini">
+                                <a class="proto-mini-shot" href="assets/wizard2.png" target="_blank" rel="noreferrer">
+                                    <img src="assets/wizard2.png" alt="Wizard step 2" />
+                                </a>
+                                <a class="proto-mini-shot" href="assets/wizard3.png" target="_blank" rel="noreferrer">
+                                    <img src="assets/wizard3.png" alt="Wizard step 3" />
+                                </a>
+                                <a class="proto-mini-shot" href="assets/wizard4.png" target="_blank" rel="noreferrer">
+                                    <img src="assets/wizard4.png" alt="Wizard step 4" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="callout">
                         <div class="callout-title">Prototype link</div>
@@ -207,46 +246,6 @@
                             Open the Hi-Fi prototype on Figma
                         </a>
                     </div>
-                </div>
-
-                <h3 style="margin-top: 18px;">Hi-Fi Prototype Screens</h3>
-                <p class="muted">Key screens from the hi-fi prototype. Click to enlarge.</p>
-
-                <div class="proto-grid">
-                    <a class="proto-shot" href="assets/unlock.png" target="_blank" rel="noreferrer">
-                        <img src="assets/unlock.png" alt="Unlock screen (biometric + PIN fallback)" />
-                        <span>Unlock</span>
-                    </a>
-
-                    <a class="proto-shot" href="assets/list.png" target="_blank" rel="noreferrer">
-                        <img src="assets/list.png" alt="Entries list screen" />
-                        <span>Entries list</span>
-                    </a>
-
-                    <a class="proto-shot" href="assets/detail.png" target="_blank" rel="noreferrer">
-                        <img src="assets/detail.png" alt="Entry details screen" />
-                        <span>Entry details</span>
-                    </a>
-
-                    <a class="proto-shot" href="assets/wizard1.png" target="_blank" rel="noreferrer">
-                        <img src="assets/wizard1.png" alt="Add/Edit wizard – step 1" />
-                        <span>Wizard step 1</span>
-                    </a>
-
-                    <a class="proto-shot" href="assets/wizard2.png" target="_blank" rel="noreferrer">
-                        <img src="assets/wizard2.png" alt="Add/Edit wizard – step 2" />
-                        <span>Wizard step 2</span>
-                    </a>
-
-                    <a class="proto-shot" href="assets/wizard3.png" target="_blank" rel="noreferrer">
-                        <img src="assets/wizard3.png" alt="Add/Edit wizard – step 3" />
-                        <span>Wizard step 3</span>
-                    </a>
-
-                    <a class="proto-shot" href="assets/wizard4.png" target="_blank" rel="noreferrer">
-                        <img src="assets/wizard4.png" alt="Add/Edit wizard – step 4" />
-                        <span>Wizard step 4</span>
-                    </a>
                 </div>
             </article>
         </div>

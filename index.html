@@ -589,26 +589,26 @@
                     </div>
                 </details>
             </article>
+            <article class="card">
+                <h3>Database design (ERD)</h3>
+                <p class="muted">
+                    Entity Relationship Diagram of the local Room/SQLite database. Sensitive columns are stored encrypted at rest.
+                </p>
 
+                <a class="erd-link" href="assets/ERD.png" target="_blank" rel="noreferrer">
+                    <img class="erd-img" src="assets/ERD.png" alt="NeoKey ERD (Secrets table)" />
+                </a>
+
+                <ul class="erd-notes">
+                    <li><strong>Table:</strong> Secret</li>
+                    <li><strong>Primary key:</strong> id</li>
+                    <li><strong>Encrypted at rest:</strong> title, account, password, note</li>
+                    <li><strong>Stored as plain (non-sensitive):</strong> category, createdAt</li>
+                </ul>
+            </article>
         </div>
     </section>
-    <article class="card">
-        <h3>Database design (ERD)</h3>
-        <p class="muted">
-            Entity Relationship Diagram of the local Room/SQLite database. Sensitive columns are stored encrypted at rest.
-        </p>
 
-        <a class="erd-link" href="assets/ERD.png" target="_blank" rel="noreferrer">
-            <img class="erd-img" src="assets/ERD.png" alt="NeoKey ERD (Secrets table)" />
-        </a>
-
-        <ul class="erd-notes">
-            <li><strong>Table:</strong> Secret</li>
-            <li><strong>Primary key:</strong> id</li>
-            <li><strong>Encrypted at rest:</strong> title, account, password, note</li>
-            <li><strong>Stored as plain (non-sensitive):</strong> category, createdAt</li>
-        </ul>
-    </article>
 </main>
 
 <footer class="site-footer">

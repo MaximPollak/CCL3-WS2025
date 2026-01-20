@@ -437,38 +437,38 @@ tr:last-child td { border-bottom: none; }
   display: block;
 }
 
-/* --- ERD block --- */
-
+/* --- ERD: don't let it dominate the page --- */
 .erd-link{
-  display: block;
-  margin-top: 0.9rem;
-  border-radius: var(--radius);
-  border: 1px solid var(--border);
-  background: rgba(15, 17, 23, 0.55);
-  overflow: hidden;
-  text-decoration: none;
-}
-
-.erd-link:hover{
-  border-color: rgba(56, 251, 219, 0.45);
-  text-decoration: none;
+  /* keep your existing styles, but add: */
+  max-width: 860px;       /* adjust: 720–960 feels good */
+  margin: 0.9rem auto 0;  /* center it */
 }
 
 .erd-img{
   width: 100%;
   height: auto;
   display: block;
-  object-fit: contain; /* ensures no cropping */
-  background: rgba(0,0,0,0.18);
+  object-fit: contain;
 }
 
-.erd-notes{
-  margin-top: 0.9rem;
-  padding-left: 1.1rem;
+/* --- Wizard mini screenshots: prevent overlap/overflow --- */
+.proto-mini{
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  align-items: start;
 }
 
-.erd-notes li{
-  color: var(--muted);
+.proto-mini-shot{
+  display: block;
+  overflow: hidden;        /* important: keeps image inside */
+}
+
+.proto-mini-shot img{
+  width: 100%;             /* important: prevents overflow */
+  height: auto;            /* keep aspect ratio */
+  display: block;
+  object-fit: contain;     /* no cropping */
 }
 
 /* Collapsible timeline wrapper */

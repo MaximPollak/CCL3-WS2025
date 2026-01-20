@@ -437,3 +437,37 @@ tr:last-child td { border-bottom: none; }
   display: block;
 }
 
+/* --- ERD block --- */
+
+.erd-link{
+  display: block;
+  margin-top: 0.9rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(15, 17, 23, 0.55);
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.erd-link:hover{
+  border-color: rgba(56, 251, 219, 0.45);
+  text-decoration: none;
+}
+
+.erd-img{
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain; /* ensures no cropping */
+  background: rgba(0,0,0,0.18);
+}
+
+.erd-notes{
+  margin-top: 0.9rem;
+  padding-left: 1.1rem;
+}
+
+.erd-notes li{
+  color: var(--muted);
+}
+

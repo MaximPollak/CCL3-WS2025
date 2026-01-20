@@ -518,3 +518,29 @@ details.fold > *:not(summary) {
     grid-template-columns: 1fr;
   }
 }
+
+/* === Main Section Headers (App / Test / Docs) === */
+.section-header {
+  position: relative;
+  padding: 1.4rem 1.2rem 1.6rem;
+  margin-bottom: 1.4rem;
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(56, 251, 219, 0.18),
+      rgba(56, 251, 219, 0.06),
+      transparent 70%
+    );
+  border-left: 4px solid var(--accent);
+}
+
+.section-header h2 {
+  margin: 0;
+  font-weight: 900;
+}
+
+.section-header .section-subtitle {
+  margin-top: 0.4rem;
+  color: var(--muted);
+}

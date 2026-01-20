@@ -464,3 +464,13 @@ details.fold > *:not(summary) {
   .proto-row{ grid-template-columns: 1fr; }
   .erd-link{ max-width: 100%; }
 }
+
+.t-body a {
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.t-body a:hover {
+  text-decoration: underline;
+}

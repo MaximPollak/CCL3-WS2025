@@ -654,6 +654,119 @@
                     Tested on Android 10+. You may need to allow installation from unknown sources.
                 </p>
             </article>
+            <!-- USABILITY DOC (RESULTS) -->
+            <section id="usability-doc" class="section">
+                <div class="container">
+                    <header class="section-header">
+                        <h2>Documentation of usability test</h2>
+                        <p class="section-subtitle">Formative (n=3) → improvements → Summative (n=10) results.</p>
+                    </header>
+
+                    <div class="grid two">
+                        <article class="card">
+                            <h3>Test rounds</h3>
+                            <p class="muted">
+                                We first conducted a formative test round with 3 participants to uncover usability issues and gather feedback for
+                                feature improvements and bug fixes. After implementing these changes, we conducted a second (summative) usability
+                                test with 10 participants.
+                            </p>
+                        </article>
+
+                        <article class="card">
+                            <h3>Key improvements after formative testing</h3>
+                            <ul>
+                                <li><strong>Category search:</strong> Added search on the Categories screen to reduce unnecessary navigation steps.</li>
+                                <li><strong>Onboarding flow:</strong> Reduced perceived “extra” screens by prioritizing direct biometric unlock (with optional welcome text).</li>
+                                <li><strong>Edit flow:</strong> Editing no longer routes users back into the full wizard, reducing time and confusion.</li>
+                                <li><strong>Discoverability:</strong> Improved discoverability of editing (previously hidden behind long-press).</li>
+                            </ul>
+                        </article>
+                    </div>
+
+                    <article class="card">
+                        <h3>Summative test demographics (n = 10)</h3>
+                        <ul>
+                            <li><strong>Mean age:</strong> 24</li>
+                            <li><strong>Gender:</strong> 4 female, 6 male</li>
+                            <li><strong>Prior experience:</strong> Majority had used password managers/authenticators before</li>
+                            <li><strong>Technical confidence:</strong> All participants reported being technically very confident</li>
+                        </ul>
+                    </article>
+
+                    <article class="card">
+                        <h3>SEQ (task difficulty, 1–5)</h3>
+                        <p class="muted">
+                            After each task, participants rated difficulty on a 1–5 scale where <strong>1 = very difficult</strong> and
+                            <strong>5 = very easy</strong>. Results showed that tasks were perceived as very easy and could be completed clearly
+                            without additional help.
+                        </p>
+                    </article>
+
+                    <article class="card">
+                        <h3>SUS (System Usability Scale)</h3>
+                        <p class="muted">
+                            As a post-test measurement to assess perceived usability, participants filled out the System Usability Scale (SUS).
+                        </p>
+
+                        <div class="media-grid">
+                            <!-- Formative -->
+                            <div class="media-text">
+                                <h4>Formative results (n = 3)</h4>
+                                <p class="muted">
+                                    Even before improvements, SUS scores indicated excellent usability. The formative round achieved a mean SUS score
+                                    of <strong>92.5</strong>, while qualitative feedback highlighted missing features and UX friction points that were
+                                    addressed before the summative test.
+                                </p>
+                            </div>
+
+                            <a class="media-img" href="assets/formativeSUS.png" target="_blank" rel="noreferrer">
+                                <img src="assets/formativeSUS.png" alt="Formative SUS boxplot" />
+                            </a>
+
+                            <!-- Summative -->
+                            <div class="media-text">
+                                <h4>Summative results (n = 10)</h4>
+                                <p class="muted">
+                                    After implementing changes, SUS results improved further. The summative round achieved a mean SUS score of
+                                    <strong>96.0</strong>, indicating outstanding usability. This is well above the commonly used benchmark of
+                                    <strong>68</strong>, which is often considered a “good usability” threshold.
+                                </p>
+                            </div>
+
+                            <a class="media-img" href="assets/summativeSUS.png" target="_blank" rel="noreferrer">
+                                <img src="assets/summativeSUS.png" alt="Summative SUS boxplot" />
+                            </a>
+                        </div>
+                    </article>
+
+                    <article class="card">
+                        <h3>Summary of summative findings</h3>
+                        <p class="muted">
+                            In addition to the high SUS score, qualitative feedback from the think-aloud protocol and the short post-test interview
+                            revealed several points worth acknowledging:
+                        </p>
+
+                        <ul>
+                            <li>
+                                <strong>Autofill:</strong> The most common critique was the lack of autofill, especially compared to established
+                                password managers. This impacts real-world efficiency because users must manually switch apps and copy secrets.
+                            </li>
+                            <li>
+                                <strong>Category customization:</strong> Users requested customizable categories and the ability to rearrange the
+                                Categories screen. This would support personalization and faster access for frequently used items.
+                            </li>
+                            <li>
+                                <strong>Password generator options:</strong> While the generator worked reliably, multiple users requested direct
+                                control over password length. This would improve perceived control and flexibility.
+                            </li>
+                            <li>
+                                <strong>Password entry visibility:</strong> Two users mentioned that while typing, only the last 2–3 characters should
+                                be visible briefly (common pattern in many apps). This helps reduce typing errors while maintaining privacy.
+                            </li>
+                        </ul>
+                    </article>
+                </div>
+            </section>
         </div>
     </section>
 

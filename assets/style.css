@@ -314,52 +314,6 @@ tr:last-child td { border-bottom: none; }
 
 /* --- Prototype screenshot grid (Hi-Fi Prototype Screens) --- */
 
-.proto-grid{
-  margin-top: 0.9rem;
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.9rem;
-}
-
-.proto-shot{
-  display: grid;
-  gap: 0.55rem;
-  padding: 0.75rem;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  background: rgba(15, 17, 23, 0.55);
-  box-shadow: 0 10px 26px rgba(0,0,0,0.30);
-  text-decoration: none;
-  transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
-}
-
-.proto-shot:hover{
-  text-decoration: none;
-  transform: translateY(-2px);
-  border-color: rgba(56, 251, 219, 0.45);
-  background: rgba(56, 251, 219, 0.06);
-}
-
-.proto-shot img{
-  width: 100%;
-  height: 170px;
-  object-fit: cover;
-  border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(0,0,0,0.18);
-}
-
-.proto-shot span{
-  font-weight: 800;
-  letter-spacing: 0.2px;
-  color: var(--text);
-  font-size: 0.95rem;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 /* --- Hi-Fi prototype: image + description side-by-side --- */
 
 .proto-flow{
@@ -381,10 +335,10 @@ tr:last-child td { border-bottom: none; }
 .proto-image{
   display: block;
   border-radius: 16px;
-  /*overflow: hidden;*/
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.18);
   text-decoration: none;
+  overflow: hidden; /* keeps image inside rounded corners */
 }
 
 .proto-image:hover{
@@ -395,9 +349,8 @@ tr:last-child td { border-bottom: none; }
 .proto-image img{
   width: 100%;
   height: auto;
-  max-height: none;
-  object-fit: contain;
   display: block;
+  object-fit: contain;
 }
 
 .proto-text strong{
@@ -411,12 +364,13 @@ tr:last-child td { border-bottom: none; }
   margin-top: 0.35rem;
 }
 
-/* Mini wizard steps */
+/* Wizard mini steps (no overlap, consistent sizing) */
 .proto-mini{
   margin-top: 0.9rem;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.75rem;
+  align-items: start;
 }
 
 .proto-mini-shot{
@@ -432,16 +386,28 @@ tr:last-child td { border-bottom: none; }
 }
 
 .proto-mini-shot img{
-  height: 100%;
-  object-fit: cover;
+  width: 100%;     /* IMPORTANT: was 50% in your broken duplicate rule */
+  height: auto;
   display: block;
+  object-fit: contain;
 }
 
-/* --- ERD: don't let it dominate the page --- */
+/* --- ERD block --- */
+
 .erd-link{
-  /* keep your existing styles, but add: */
-  max-width: 860px;       /* adjust: 720–960 feels good */
-  margin: 0.9rem auto 0;  /* center it */
+  display: block;
+  max-width: 860px;
+  margin: 0.9rem auto 0;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(15, 17, 23, 0.55);
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.erd-link:hover{
+  border-color: rgba(56, 251, 219, 0.45);
+  text-decoration: none;
 }
 
 .erd-img{
@@ -449,26 +415,12 @@ tr:last-child td { border-bottom: none; }
   height: auto;
   display: block;
   object-fit: contain;
+  background: rgba(0,0,0,0.18);
 }
 
-/* --- Wizard mini screenshots: prevent overlap/overflow --- */
-.proto-mini{
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  align-items: start;
-}
-
-.proto-mini-shot{
-  display: block;
-  overflow: hidden;
-}
-
-.proto-mini-shot img{
-  width: 50%;             /* important: prevents overflow */
-  height: auto;            /* keep aspect ratio */
-  display: block;
-  object-fit: contain;     /* no cropping */
+.erd-notes{
+  margin-top: 0.9rem;
+  padding-left: 1.1rem;
 }
 
 /* Collapsible timeline wrapper */
@@ -505,4 +457,10 @@ details.fold[open] > summary::before {
 
 details.fold > *:not(summary) {
   margin-top: 0.9rem;
+}
+
+/* Responsive: stack proto rows on small screens */
+@media (max-width: 860px) {
+  .proto-row{ grid-template-columns: 1fr; }
+  .erd-link{ max-width: 100%; }
 }

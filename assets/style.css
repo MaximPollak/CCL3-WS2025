@@ -477,3 +477,44 @@ details.fold > *:not(summary) {
   text-decoration: underline;
   text-decoration-color: var(--accent);
 }
+/* --- Usability results: left text + right image grid --- */
+.media-grid{
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: 1fr 420px;
+  gap: 1rem;
+  align-items: start;
+}
+
+.media-text h4{
+  margin-top: 0;
+}
+
+.media-img{
+  display: block;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(15, 17, 23, 0.55);
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.media-img:hover{
+  border-color: rgba(56, 251, 219, 0.45);
+  text-decoration: none;
+}
+
+.media-img img{
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: contain;
+  background: rgba(0,0,0,0.18);
+}
+
+/* Responsive: stack text and image */
+@media (max-width: 860px){
+  .media-grid{
+    grid-template-columns: 1fr;
+  }
+}

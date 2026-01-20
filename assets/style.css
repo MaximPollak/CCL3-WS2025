@@ -422,7 +422,7 @@ tr:last-child td { border-bottom: none; }
 .proto-mini-shot{
   display: block;
   border-radius: 14px;
-  /*overflow: hidden;*/
+  overflow: hidden;
   border: 1px solid rgba(255,255,255,0.08);
   background: rgba(0,0,0,0.18);
 }
@@ -433,7 +433,7 @@ tr:last-child td { border-bottom: none; }
 
 .proto-mini-shot img{
   height: 100%;
-  /*object-fit: cover;*/
+  object-fit: cover;
   display: block;
 }
 
@@ -461,11 +461,11 @@ tr:last-child td { border-bottom: none; }
 
 .proto-mini-shot{
   display: block;
-  overflow: hidden;        /* important: keeps image inside */
+  overflow: hidden;
 }
 
 .proto-mini-shot img{
-  width: 100%;             /* important: prevents overflow */
+  width: 50%;             /* important: prevents overflow */
   height: auto;            /* keep aspect ratio */
   display: block;
   object-fit: contain;     /* no cropping */

@@ -605,7 +605,9 @@ details.fold > *:not(summary) {
   width: 100%;
   height: auto;
   max-height: none;
+  display: block;
 }
+
 
 @media (min-width: 900px) {
   .viz-grid {

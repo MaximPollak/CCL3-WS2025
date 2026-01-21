@@ -559,19 +559,34 @@ details.fold > *:not(summary) {
   border-radius: var(--radius);
   background: rgba(15, 17, 23, 0.55);
   overflow: hidden;
+
+  /* keeps caption at bottom */
+  display: flex;
+  flex-direction: column;
 }
 
+/* fixed “image area” so all cards match */
 .viz-link {
   display: block;
   text-decoration: none;
+
+  aspect-ratio: 16 / 9;         /* same height for every chart */
+  background: rgba(0,0,0,0.18);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.75rem;              /* breathing room */
 }
 
 .viz-item img {
-  width: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
   height: auto;
+  object-fit: contain;           /* don’t crop */
   display: block;
-  /* keeps dark plots crisp and avoids blurry scaling in some browsers */
-  image-rendering: auto;
 }
 
 .viz-caption {
@@ -584,9 +599,5 @@ details.fold > *:not(summary) {
 @media (min-width: 900px) {
   .viz-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  /* make the first chart span full width if you want a nicer flow */
-  .viz-item:first-child {
-    grid-column: 1 / -1;
   }
 }

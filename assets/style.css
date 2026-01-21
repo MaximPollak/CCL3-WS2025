@@ -544,3 +544,49 @@ details.fold > *:not(summary) {
   margin-top: 0.4rem;
   color: var(--muted);
 }
+
+/* Data viz gallery */
+.viz-grid {
+  margin-top: 1rem;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
+
+.viz-item {
+  margin: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: rgba(15, 17, 23, 0.55);
+  overflow: hidden;
+}
+
+.viz-link {
+  display: block;
+  text-decoration: none;
+}
+
+.viz-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+  /* keeps dark plots crisp and avoids blurry scaling in some browsers */
+  image-rendering: auto;
+}
+
+.viz-caption {
+  padding: 0.9rem 1rem 1rem;
+  color: var(--muted);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 20, 27, 0.25);
+}
+
+@media (min-width: 900px) {
+  .viz-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  /* make the first chart span full width if you want a nicer flow */
+  .viz-item:first-child {
+    grid-column: 1 / -1;
+  }
+}

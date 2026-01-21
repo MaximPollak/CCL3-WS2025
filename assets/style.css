@@ -596,18 +596,18 @@ details.fold > *:not(summary) {
   background: rgba(18, 20, 27, 0.25);
 }
 
+/* SUS (or any figure you mark as free) should not be forced to 16:9 */
 .viz-item--free .viz-link {
   aspect-ratio: auto;
   padding: 0;
+  display: block;           /* overrides flex-centering */
 }
 
 .viz-item--free img {
   width: 100%;
   height: auto;
   max-height: none;
-  display: block;
 }
-
 
 @media (min-width: 900px) {
   .viz-grid {

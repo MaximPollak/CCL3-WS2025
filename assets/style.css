@@ -596,6 +596,17 @@ details.fold > *:not(summary) {
   background: rgba(18, 20, 27, 0.25);
 }
 
+.viz-item--free .viz-link {
+  aspect-ratio: auto;
+  padding: 0;
+}
+
+.viz-item--free img {
+  width: 100%;
+  height: auto;
+  max-height: none;
+}
+
 @media (min-width: 900px) {
   .viz-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
